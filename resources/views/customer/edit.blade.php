@@ -1,27 +1,41 @@
-{{Form::model($customer, array('route' => array('customer.update', $customer->id), 'method' => 'PUT', 'class' => 'needs-validation', 'novalidate')) }}
+{{Form::model($customer, array('route' => array('customer.update', $customer->id), 'method' => 'PUT', 'class' => 'needs-validation', 'novalidate', 'files' => true)) }}
 <div class="modal-body">
 
-    <h5 class="sub-title">{{__('Basic Information')}}</h5>
+    <h5 class="sub-title">{{__('Customer Information')}}</h5>
     <div class="row">
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('name', __('Customer Name'), array('class' => 'form-label')) }}<x-required></x-required>
-                {{Form::text('name', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Full Name')))}}
-
-            </div>
-        </div>
-        {{-- <div class="col-lg-4 col-md-4 col-sm-6">
-            <div class="form-group">
-                <x-Mobile label="{{__('Mobile')}}" name="contact" required placeholder="{{__('Enter Contact')}}"></x-Mobile>
+                {{Form::text('name', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Name')))}}
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
-                {{Form::label('email', __('Email'), ['class' => 'form-label'])}}<x-required></x-required>
-                {{Form::text('email', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter email')))}}
-
+                {{Form::label('mother_name', __('Mother Name'), array('class' => 'form-label')) }}<x-required></x-required>
+                {{Form::text('mother_name', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Mother Name')))}}
             </div>
-        </div>--}}
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('gender', __('Gender'), ['class' => 'form-label'])}}<x-required></x-required>
+                {{Form::select('gender', ['Male' => 'Male', 'Female' => 'Female'], old('gender', $customer->gender ?? ''), ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Select Gender'), 'style' => 'width: 235px;']) }}
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{ Form::label('dob', __('Date of Birth'), ['class' => 'form-label']) }}<x-required></x-required>
+                <div class="form-icon-user">
+                    {{Form::date('dob', null, array('class' => 'form-control', 'required' => 'required'))}}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('pob', __('Place of Birth'), array('class' => 'form-label')) }}<x-required></x-required>
+                {{Form::text('pob', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Place of Birth')))}}
+            </div>
+        </div>
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('contact', __('Mobile'), ['class' => 'form-label'])}}<x-required></x-required>
@@ -34,18 +48,102 @@
                 {{Form::email('email', null, array('class' => 'form-control', 'placeholder' => __('Enter email')))}}
             </div>
         </div>
-        <div class="col-md-12">
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('billing_address', __('Address'), array('class' => 'form-label')) }}
-                {{Form::textarea('billing_address', null, array('class' => 'form-control', 'rows' => 3, 'placeholder' => __('Enter Address')))}}
-
+                {{Form::text('billing_address', null, array('class' => 'form-control', 'placeholder' => __('Enter Address')))}}
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
-                {{Form::label('type', __('Customer Type'), ['class' => 'form-label'])}}
-                {{Form::select('type', ['Person' => 'Person', 'Travel Agency' => 'Travel Agency', 'Organization' => 'Organization',], old('type', $customer->type ?? ''), ['class' => 'form-control', 'placeholder' => __('Select Customer Type'), 'style' => 'width: 235px;']) }}
+                {{Form::label('billing_city', __('City'), array('class' => 'form-label')) }}
+                {{Form::text('billing_city', null, array('class' => 'form-control', 'placeholder' => __('Enter City')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('billing_state', __('State'), array('class' => 'form-label')) }}
+                {{Form::text('billing_state', null, array('class' => 'form-control', 'placeholder' => __('Enter State')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('billing_country', __('Country'), array('class' => 'form-label')) }}
+                {{Form::text('billing_country', null, array('class' => 'form-control', 'placeholder' => __('Enter Country')))}}
+            </div>
+        </div>
 
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{ Form::label('reg_date', __('Registration Date'), ['class' => 'form-label']) }}<x-required></x-required>
+                <div class="form-icon-user">
+                    {{Form::date('reg_date', null, array('class' => 'form-control', 'required' => 'required'))}}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('type', __('Document Type'), ['class' => 'form-label'])}}<x-required></x-required>
+                {{Form::select('type', ['Passport' => 'Passport', 'Dhalasho' => 'Dhalasho', 'NIRA' => 'NIRA'], old('type', $customer->type ?? ''), ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Select Document Type'), 'style' => 'width: 235px;']) }}
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('serial_no', __('Serial #'), array('class' => 'form-label')) }}<x-required></x-required>
+                {{Form::text('serial_no', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter serial no')))}}
+            </div>
+        </div>
+
+        <div class="col-md-6 form-group">
+            {{Form::label('cust_image', __('Customer Photo'), ['class' => 'form-label'])}}
+            <div class="choose-file">
+                <label for="cust_image" class="form-label">
+                    <input type="file" class="form-control file-validate" name="cust_image" id="cust_image"
+                        accept="image/jpeg,image/png,image/jpg,image/gif" data-filename="cust_image_edit">
+                    <p class="file-info text-muted small">Allowed formats: JPG, PNG, GIF (Max: 2MB)</p>
+                    <p id="cust_image_error" class="file-error text-danger"></p>
+                    @if(!empty($customer->cust_image))
+                        <div class="mt-3">
+                            <p class="text-muted small">Current Image:</p>
+                            <img src="{{ asset('storage/uploads/cust_image/' . $customer->cust_image) }}" class="img-thumbnail" style="width:100px; height:100px; object-fit:cover;" alt="Current Image">
+                            <br>
+                            <small class="text-muted">{{ $customer->cust_image }}</small>
+                        </div>
+                    @endif
+                    <img id="cust_image_preview" class="mt-3 img-thumbnail" style="width:25%; display:none;" />
+                </label>
+            </div>
+        </div>
+
+        <div class="col-md-6 form-group">
+            {{Form::label('cust_document', __('Customer Document'), ['class' => 'form-label'])}}
+            <div class="choose-file">
+                <label for="cust_document" class="form-label">
+                    <input type="file" class="form-control file-validate" name="cust_document" id="cust_document"
+                        accept="image/jpeg,image/png,image/jpg,image/gif,application/pdf,.doc,.docx" data-filename="cust_document_edit">
+                    <p class="file-info text-muted small">Allowed formats: JPG, PNG, GIF, PDF, DOC, DOCX (Max: 2MB)</p>
+                    <p id="cust_document_error" class="file-error text-danger"></p>
+                    @if(!empty($customer->cust_document))
+                        <div class="mt-3">
+                            <p class="text-muted small">Current Document:</p>
+                            <div class="alert alert-info py-2">
+                                <small><i class="fas fa-file"></i> {{ $customer->cust_document }}</small>
+                            </div>
+                            <small class="text-muted">{{ $customer->cust_document }}</small>
+                        </div>
+                    @endif
+                    <img id="cust_document_preview" class="mt-3 img-thumbnail" style="width:25%; display:none;" />
+                </label>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('customer_type', __('Customer Type'), ['class' => 'form-label'])}}
+                {{Form::select('customer_type', ['Person' => 'Person', 'Travel Agency' => 'Travel Agency', 'Organization' => 'Organization'], old('customer_type', $customer->type ?? ''), ['class' => 'form-control', 'placeholder' => __('Select Customer Type'), 'style' => 'width: 235px;']) }}
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-6">
@@ -61,8 +159,8 @@
            </div>
         </div>
 
-        @if($customer->type == 'Travel Agency' || old('type') == 'Travel Agency')
-        <div class="col-md-12">
+        @if($customer->type == 'Travel Agency' || old('customer_type') == 'Travel Agency')
+        <div class="col-md-12 customer-login-section" style="display: {{ $customer->type == 'Travel Agency' ? 'block' : 'none' }};">
             <div class="row">
                 <div class="col-md-5 mb-3 form-group">
                     <label for="password_switch">{{ __('Login is enable') }}</label>
@@ -218,14 +316,64 @@
 
 <script>
 $(document).ready(function() {
+    // Show/hide login section based on customer type
+    $('select[name="customer_type"]').on('change', function() {
+        if($(this).val() == 'Travel Agency') {
+            $('.customer-login-section').show();
+        } else {
+            $('.customer-login-section').hide();
+            $('#password_switch').prop('checked', false);
+            $('.ps_div').addClass('d-none');
+            $('#password').val('').removeAttr('required');
+        }
+    });
+
+    // Trigger on page load if type is already selected
+    if($('select[name="customer_type"]').val() == 'Travel Agency') {
+        $('.customer-login-section').show();
+    }
+
     // Password switch toggle
     $(document).on('change', '#password_switch', function() {
         if ($(this).is(':checked')) {
             $('.ps_div').removeClass('d-none');
+            $('#password').attr("required", true);
         } else {
             $('.ps_div').addClass('d-none');
-            $('#password').val(null);
+            $('#password').val(null).removeAttr("required");
         }
+    });
+
+    // File preview functionality
+    $('#cust_image').on('change', function() {
+        var file = this.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#cust_image_preview').attr('src', e.target.result).show();
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    $('#cust_document').on('change', function() {
+        var file = this.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#cust_document_preview').attr('src', e.target.result).show();
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form validation feedback
+    $('.needs-validation').on('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        this.classList.add('was-validated');
     });
 });
 </script>

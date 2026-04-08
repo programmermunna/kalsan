@@ -420,7 +420,7 @@
                                 </div>
                                 <div class="col-xs-12 col-sm-12 col-nd-6 col-lg-6 col-12 text-end">
                                     <h4 class="invoice-number">
-                                        {{ AUth::user()->invoiceNumberFormat($invoice->invoice_id) }}</h4>
+                                        {{ Auth::user()->invoiceNumberFormat($invoice->invoice_id) }}</h4>
                                 </div>
                                 <div class="col-12">
                                     <hr>

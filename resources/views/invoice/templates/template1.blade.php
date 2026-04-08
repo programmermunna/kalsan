@@ -1,5 +1,29 @@
 @php
 $settings_data = \App\Models\Utility::settingsById($invoice->created_by);
+
+// Get company logo
+$company_logo = null;
+if (isset($settings_data['company_logo_dark']) && !empty($settings_data['company_logo_dark'])) {
+    $company_logo = asset('storage/uploads/logo/' . $settings_data['company_logo_dark']);
+} elseif (isset($settings['company_logo_dark']) && !empty($settings['company_logo_dark'])) {
+    $company_logo = asset('storage/uploads/logo/' . $settings['company_logo_dark']);
+}
+
+// Get driving license information for this customer
+$license = null;
+if (!empty($customer)) {
+    $license = \App\Models\DrivingLicense::where('customer_id', $customer->id)
+        ->where('invoice_id', $invoice->id)
+        ->first();
+    
+    // If no license found for this invoice, get the latest license for the customer
+    if (!$license) {
+        $license = \App\Models\DrivingLicense::where('customer_id', $customer->id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+    }
+}
+
 // Get airline/vendor information
 $airline = null;
 if (!empty($invoice->vender_id)) {
@@ -26,761 +50,540 @@ if (!empty($invoice->destination)) {
     }
 }
 @endphp
+
+
 <!DOCTYPE html>
-<html lang="en" dir="{{$settings_data['SITE_RTL'] == 'on' ? 'rtl' : ''}}">
-
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap" rel="stylesheet">
-
-    <style type="text/css">
-
-
-        :root {
-            --theme-color: {{$color}};
-            --white: #ffffff;
-            --black: #000000;
-        }
-
-        body {
-            font-family: 'Lato', sans-serif;
-        }
-
-        p,
-        li,
-        ul,
-        ol {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            line-height: 1.5;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table tr th {
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        table tr td {
-            padding: 0.75rem;
-            text-align: left;
-        }
-
-        table th small {
-            display: block;
-            font-size: 12px;
-        }
-
-        .invoice-preview-main {
-            max-width: 700px;
-            width: 100%;
-            margin: 0 auto;
-            background: #ffff;
-            box-shadow: 0 0 10px #ddd;
-        }
-
-        .invoice-logo {
-            max-width: 200px;
-            width: 100%;
-        }
-
-        .invoice-header table td {
-            padding: 10px 20px;
-        }
-
-        .company-details-center {
-            text-align: center;
-        }
-
-        .wavy-line {
-            border-top: 2px solid var(--theme-color);
-            margin: 10px 0;
-            height: 0;
-            width: 100%;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .no-space tr td {
-            padding: 0;
-            white-space: nowrap;
-        }
-
-        .vertical-align-top td {
-            vertical-align: top;
-        }
-
-        .view-qrcode {
-            max-width: 70px !important;
-            width: 70px !important;
-            height: 70px !important;
-            margin-left: auto;
-            margin-top: 5px;
-            background: var(--white);
-            padding: 5px;
-            border-radius: 8px;
-            display: inline-block;
-            overflow: hidden;
-        }
-
-        .view-qrcode img,
-        .view-qrcode svg {
-            width: 100% !important;
-            height: 100% !important;
-            max-width: 100% !important;
-            max-height: 100% !important;
-            object-fit: contain;
-        }
-
-        .invoice-body {
-            padding: 15px 25px 0;
-        }
-
-        .invoice-summary {
-            border: 1px solid #ddd;
-        }
-
-        .invoice-summary th,
-        .invoice-summary td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-
-        .invoice-summary thead th {
-            background: {{$color}};
-            color: {{$font_color}};
-        }
-
-
-
-        table.add-border tr {
-            border-top: 1px solid var(--theme-color);
-        }
-
-        tfoot tr:first-of-type {
-            border-bottom: 1px solid var(--theme-color);
-        }
-
-        .total-table tr:first-of-type td {
-            padding-top: 0;
-        }
-
-        .total-table tr:first-of-type {
-            border-top: 0;
-        }
-
-        .sub-total {
-            padding-right: 0;
-            padding-left: 0;
-        }
-
-        .border-0 {
-            border: none !important;
-        }
-
-        .invoice-summary td,
-        .invoice-summary th {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .total-table td:last-of-type {
-            width: 146px;
-        }
-
-        .invoice-footer {
-            padding: 15px 20px;
-            text-align: right;
-        }
-
-        .invoice-actions {
-            text-align: center;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .invoice-actions button {
-            margin: 0 10px;
-            padding: 10px 30px;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            background: var(--theme-color);
-            color: var(--white);
-            font-weight: bold;
-        }
-
-        .invoice-actions button:hover {
-            opacity: 0.9;
-        }
-
-        .invoice-actions .btn-print {
-            background: #28a745;
-        }
-
-        .invoice-actions .btn-download {
-            background: #007bff;
-        }
-
-        .itm-description td {
-            padding-top: 0;
-        }
-        html[dir="rtl"] table tr td,
-        html[dir="rtl"] table tr th{
-            text-align: right;
-        }
-        html[dir="rtl"]  .text-right{
-            text-align: left;
-        }
-        html[dir="rtl"] .view-qrcode{
-            margin-left: 0;
-            margin-right: auto;
-        }
-
-        @media print {
-            .invoice-actions {
-                display: none !important;
-            }
-        }
-
-        @media (max-width: 426px) {
-    .invoice-summary td,
-        .invoice-summary th {
-            font-size: 10px;
-            padding: 5px
-        }
-
-        .no-space tr td {
-            font-size: 10px
-        }
-        .invoice-header table td{
-            padding: 15px 10px
-        }
-
-        .company-detail {
-            font-size: 10px
-        }
-
-        .invoice-actions {
-            padding: 10px;
-        }
-
-        .invoice-actions button {
-            margin: 5px;
-            padding: 8px 20px;
-            font-size: 14px;
-        }
-
-
-        body {
-            font-family: 'DejaVu Sans', 'Arial', sans-serif;
-            margin: 0;
-            padding: 40px;
-            background: white;
-        }
-
-        .certificate {
-            border: 10px double #333;
-            padding: 40px;
-            min-height: 600px;
-            position: relative;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
-            font-size: 36px;
-            text-transform: uppercase;
-            margin: 0;
-            letter-spacing: 4px;
-        }
-
-        .header h2 {
-            font-size: 24px;
-            color: #666;
-            margin-top: 10px;
-        }
-
-        .grade {
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .grade .badge {
-            font-size: 48px;
-            font-weight: bold;
-            background: #28a745;
-            color: white;
-            padding: 15px 40px;
-            display: inline-block;
-            border-radius: 10px;
-        }
-
-        .student-name {
-            text-align: center;
-            margin: 40px 0;
-        }
-
-        .student-name h3 {
-            font-size: 28px;
-            text-transform: uppercase;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        .student-name p {
-            font-size: 16px;
-            margin-top: 5px;
-        }
-
-        .certify-text {
-            text-align: center;
-            margin: 50px 0;
-            font-size: 16px;
-        }
-
-        .certify-text p {
-            margin: 10px 0;
-        }
-
-        .certify-text .lead {
-            font-size: 18px;
-            font-style: italic;
-            line-height: 1.6;
-        }
-
-        .footer {
-            margin-top: 80px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .signature {
-            width: 45%;
-            text-align: center;
-        }
-
-        .signature hr {
-            margin: 20px 0 10px;
-            border: none;
-            border-top: 1px solid #000;
-        }
-
-        .signature p {
-            margin: 5px 0;
-        }
-
-        @page {
-            margin: 0;
-        }
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalsan Driving Certificate</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #d0d0d0;
+    display: flex;
+    flex-direction: column;  /* এটা যোগ করুন */
+    justify-content: flex-start;
+    align-items: center;     /* center করুন */
+    min-height: 100vh;
+    padding: 10px;
+    font-family: Georgia, 'Times New Roman', serif;
 }
-    </style>
 
-    @if($settings_data['SITE_RTL'] == 'on')
-        <link rel="stylesheet" href="{{ asset('css/bootstrap-rtl.css') }}">
-    @endif
+  .page {
+    width: 210mm;
+    height: 297mm;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .border-top, .border-bottom {
+    position: absolute; left: 0; right: 0; height: 20px;
+    background: repeating-linear-gradient(90deg, #1a6b9a 0px, #1a6b9a 9px, #5ab0d8 9px, #5ab0d8 18px);
+    z-index: 10;
+  }
+  .border-top { top: 0; }
+  .border-bottom { bottom: 0; }
+
+  .border-left, .border-right {
+    position: absolute; top: 0; bottom: 0; width: 20px;
+    background: repeating-linear-gradient(180deg, #1a6b9a 0px, #1a6b9a 9px, #5ab0d8 9px, #5ab0d8 18px);
+    z-index: 10;
+  }
+  .border-left { left: 0; }
+  .border-right { right: 0; }
+
+  .inner-border {
+    position: absolute;
+    top: 26px; left: 26px; right: 26px; bottom: 26px;
+    border: 1.5px solid #1a6b9a;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .corner { position: absolute; width: 44px; height: 44px; z-index: 12; }
+  .corner-tl { top: 4px; left: 4px; }
+  .corner-tr { top: 4px; right: 4px; }
+  .corner-bl { bottom: 4px; left: 4px; }
+  .corner-br { bottom: 4px; right: 4px; }
+
+  /* Main flex layout */
+  .content {
+    position: relative;
+    z-index: 6;
+    padding: 34px 46px 28px 46px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 7px;
+    flex-shrink: 0;
+  }
+  .logo-name {
+    font-family: Arial, sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    color: #1a6b9a;
+    line-height: 1;
+    letter-spacing: 1px;
+  }
+  .logo-sub {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #1a6b9a;
+    line-height: 1.35;
+  }
+  .center-logo {
+    width: 70px; height: 70px;
+    border: 2.5px solid #1a6b9a;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .center-logo-text {
+    font-family: Arial, sans-serif;
+    font-size: 6px;
+    font-weight: 700;
+    color: #1a6b9a;
+    text-align: center;
+    line-height: 1.3;
+  }
+  .arabic-main {
+    font-family: Arial, sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a6b9a;
+    direction: rtl;
+    line-height: 1.1;
+    text-align: right;
+  }
+  .arabic-sub {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #1a6b9a;
+    direction: rtl;
+    text-align: right;
+  }
+
+  /* Date */
+  .date-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+  }
+  .date-box {
+    border: 1px solid #666;
+    padding: 3px 12px;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: #333;
+  }
+
+  /* CENTER — fills remaining vertical space */
+  .center-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 0;
+  }
+
+  .cert-title {
+    font-family: Arial, sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    color: #1a9ad7;
+    line-height: 1;
+    margin-bottom: 5px;
+  }
+  .cert-subtitle {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-style: italic;
+    font-weight: 700;
+    color: #1a6b9a;
+    text-decoration: underline;
+    margin-bottom: 16px;
+  }
+  .photo-box {
+    border: 2px solid #1a9ad7;
+    width: 130px;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eaf5fb;
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .user-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 2px;
+  }
+  .photo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+  .company-logo {
+    max-height: 100px;
+    max-width: 220px;
+    object-fit: contain;
+  }
+  .grade-box {
+    border: 1.5px solid #1a9ad7;
+    padding: 3px 52px;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #333;
+    margin-bottom: 14px;
+  }
+  .holder-name {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a6b9a;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
+  .license-no {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 8px;
+  }
+  .license-no span { color: #cc2200; }
+  .serial {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 16px;
+  }
+  .serial span { color: #cc2200; }
+  .cert-body {
+    font-style: italic;
+    font-size: 14px;
+    color: #222;
+    line-height: 2;
+  }
+  .cert-body .ul { text-decoration: underline; }
+
+  /* SIGNATURE SECTION */
+  .signature-section {
+    flex-shrink: 0;
+    border-top: 1.5px dashed #bbb;
+    padding-top: 16px;
+    padding-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .sig-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 140px;
+  }
+  .sig-box {
+    width: 150px;
+    height: 52px;
+    border: 1px solid #ccc;
+    background: #fafafa;
+    position: relative;
+  }
+  .sig-box::after {
+    content: '';
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    border-bottom: 1px solid #aaa;
+  }
+  .sig-label {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .sig-role {
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    color: #888;
+  }
+
+  /* Seal */
+  .seal-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .seal-outer {
+    width: 84px;
+    height: 84px;
+    border: 2px dashed #1a6b9a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .seal-inner {
+    width: 68px;
+    height: 68px;
+    border: 1.5px solid #1a6b9a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .seal-text {
+    font-family: Arial, sans-serif;
+    font-size: 6.5px;
+    font-weight: 700;
+    color: #1a6b9a;
+    line-height: 1.5;
+  }
+  .seal-label {
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    color: #888;
+  }
+
+  /* Action buttons */
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    padding: 15px;
+    border-radius: 8px;
+    width: 210mm;  /* page-এর width এর সমান করুন */
+}
+  .btn-action {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-download {
+    background: #28a745;
+    color: white;
+  }
+  .btn-download:hover {
+    background: #218838;
+    transform: translateY(-1px);
+  }
+  .btn-print {
+    background: #007bff;
+    color: white;
+  }
+  .btn-print:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+  }
+
+  @media print {
+    body { background: none; padding: 0; }
+    .page { width: 216mm; height: 279mm; }
+    .action-buttons { display: none !important; }
+  }
+</style>
 </head>
+<body>
 
-<body class="">
-@if(!isset($preview))
-<div class="invoice-actions">
-    <button type="button" class="btn-print" onclick="printInvoice()">
-        {{__('Print')}}
-    </button>
-    <button type="button" class="btn-download" onclick="downloadInvoice()">
-        {{__('Download')}}
-    </button>
-</div>
-@endif
-<div class="invoice-preview-main"  id="boxes">
-    <div class="invoice-header" style="background: {{$color}};color:{{$font_color}}">
-        <!-- Logo Section -->
-        <div style="text-align: center; padding: 20px 0 5px 0;">
-            <img class="invoice-logo" src="{{$img}}" alt="" style="width: auto; height: auto; max-width: 550px; max-height: none; margin-top: 15px;">
-<p style="border-color: #007bff; border-width: 2px;">_______________________________________________________________________________________________________</p>
-        </div>
 
-        <!-- Wavy Line -->
-        <div class="wavy-line"></div>
 
-        <!-- Company Details - Centered -->
-
-        <!-- Bill To and Invoice Details Section -->
-        <table class="vertical-align-top" style="width: 100%; margin-top: 10px;">
-            <tbody>
-            <tr>
-                <td style="width: 50%; vertical-align: top;">
-                    <table class="no-space" style="width: 100%;">
-                        <tbody>
-                        <tr>
-                            <td>
-                                <strong style="margin-bottom: 10px; display:block;">{{__('Customer Information')}}:</strong>
-                                @if(!empty($customer->name))
-                                    <p>
-                                    <b> {{!empty($customer->name) ? $customer->name : ''}}</b><br>
-                                    </p>
-                                @else
-                                    -
-                                @endif
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <table>
-                                    <tr>
-                                        <td><b>{{__('Mother Name')}}:</b></td>
-                                        <td>{{!empty($customer->mother_name) ? $customer->mother_name : '-'}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><b>{{__('gender')}}:</b></td>
-                                        <td>{{!empty($customer->gender) ? $customer->gender : '-'}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><b>{{__('Place of Birth')}}:</b></td>
-                                        <td>{{!empty($customer->pob) ? $customer->pob : '-'}}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><b>{{__('Date of Birth')}}:</b></td>
-                                        <td>{{ !empty($customer->dob) ? $customer->dob : '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><b>{{__('Address')}}:</b></td>
-                                        <td>{{ !empty($customer->billing_address) ? $customer->billing_address : '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><b>{{__('City')}}:</b></td>
-                                        <td>{{ !empty($customer->billing_city) ? $customer->billing_city : '-' }}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><b>{{__('Country')}}:</b></td>
-                                        <td>{{ !empty($customer->billing_country) ? $customer->billing_country : '-' }}</td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </td>
-                <td style="width: 50%; vertical-align: top;">
-                    <table class="no-space" style="width: auto; margin-left: auto;">
-                        <tbody>
-                        <tr>
-                            <td><strong style="margin-bottom: 10px; display:block;">{{__('License Details')}}:</strong></td>
-                        </tr>
-                        <tr>
-                            <td style="padding-right: 5px;"><b>{{__('License No')}}:</b></td>
-                            <td class="text-right">{{Utility::invoiceNumberFormat($settings, $invoice->invoice_id)}}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding-right: 5px;"><b>{{__('Issue Date')}}:</b></td>
-                            <td class="text-right">{{Utility::dateFormat($settings, $invoice->issue_date)}}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding-right: 5px;"><b>{{__('Due Date')}}:</b></td>
-                            <td class="text-right">{{Utility::dateFormat($settings, $invoice->due_date)}}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding-right: 5px;"><b>{{__('Document')}}:</b></td>
-                            <td class="text-right">{{ !empty($customer->type) ? $customer->type : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding-right: 5px;"><b>{{__('Serial No')}}:</b></td>
-                            <td class="text-right">{{ !empty($customer->serial_no) ? $customer->serial_no : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding-right: 5px;"><b>{{__('Invoice Status')}}:</b></td>
-                            <td class="text-right">
-                                @if ($invoice->status == 0)
-                                    {{ __(\App\Models\Invoice::$statues[$invoice->status]) }}
-                                @elseif($invoice->status == 1)
-                                    {{ __(\App\Models\Invoice::$statues[$invoice->status]) }}
-                                @elseif($invoice->status == 2)
-                                    {{ __(\App\Models\Invoice::$statues[$invoice->status]) }}
-                                @elseif($invoice->status == 3)
-                                    {{ __(\App\Models\Invoice::$statues[$invoice->status]) }}
-                                @elseif($invoice->status == 4)
-                                    {{ __(\App\Models\Invoice::$statues[$invoice->status]) }}
-                                @endif
-                            </td>
-                        </tr>
-                        @if($settings['invoice_qr_display'] == 'on')
-                        <tr>
-                            <td colspan="2" class="text-right">
-                                <div class="view-qrcode">
-                                    {!! DNS2D::getBarcodeHTML(route('invoice.link.copy', \Crypt::encrypt($invoice->invoice_id)), "QRCODE", 1, 1) !!}
-                                </div>
-                            </td>
-                        </tr>
-                        @endif
-                        @if(!empty($customFields) && count($invoice->customField) > 0)
-                            @foreach($customFields as $field)
-                                <tr>
-                                    <td style="padding-right: 5px;">{{$field->name}} :</td>
-                                    <td class="text-right"> {{!empty($invoice->customField) ? $invoice->customField[$field->id] : '-'}}</td>
-                                </tr>
-                            @endforeach
-                        @endif
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-        <!-- Wavy Line Separator -->
-        <div class="wavy-line" style="margin: 10px 0 5px 0;"></div>
-    </div>
-    <div class="invoice-body">
-        <table class="invoice-summary" style="margin-top: 10px;">
-            <thead>
-            <tr>
-                <th>{{__('#')}}</th>
-                <th>{{__('Nooca Ruqsada')}}</th>
-                <th>{{__('Grade')}}</th>
-                <th>{{__('Diiwangalinta')}}</th>
-                <th>{{__('Barashada Tabeelaha')}}</th>
-                <th>{{__('Shahado')}}</th>
-                <th>{{__('Buugga')}}</th>
-                <th>{{__('Tijaabo Qadka')}}</th>
-                <th>{{__('Discount')}}</th>
-                <th>{{__('Total Amount')}}</th>
-            </tr>
-            </thead>
-            <tbody>
-            @if(isset($invoice->items) && count($invoice->items) > 0)
-                @foreach($invoice->items as $key => $item)
-                    <tr>
-                        <td>{{$key + 1}}</td>
-                        <td>{{!empty($item->type) ? $item->type : '-'}}</td>
-                        <td>{{!empty($item->grade) ? $item->grade : '-'}}</td>
-                        <td>{{!empty($item->net) ? $item->net : '-'}}</td>
-                        <td>{{!empty($item->fare) ? $item->fare : '-'}}</td>
-                        <td>{{!empty($item->tax) ? $item->tax : '-'}}</td>
-                        <td>{{!empty($item->refund) ? $item->refund : '-'}}</td>
-                        <td>{{!empty($item->commission) ? $item->commission : '-'}}</td>
-                        <td>{{!empty($item->discount) ? $item->discount : '-'}}</td>
-                        <td>{{!empty($item->total) ? Utility::priceFormat($settings, $item->total) : Utility::priceFormat($settings, ($item->net ?? 0) + ($item->fare ?? 0) + ($item->tax ?? 0) + ($item->refund ?? 0) + ($item->commission ?? 0) - ($item->discount ?? 0))}}</td>
-                    </tr>
-                @endforeach
-            @elseif(isset($invoice->itemData) && count($invoice->itemData) > 0)
-                @foreach($invoice->itemData as $key => $item)
-                    <tr>
-                        <td>{{$key + 1}}</td>
-                        <td>{{$item->name ?? '-'}}</td>
-                        <td>-</td>
-                        <td>-</td>
-                        @php
-        $itemtax = 0;
-        if (!empty($item->itemTax)) {
-            foreach ($item->itemTax as $taxes) {
-                $itemtax += $taxes['tax_price'];
-            }
-        }
-        $totalAmount = ($item->price ?? 0) * ($item->quantity ?? 1) - ($item->discount ?? 0) + $itemtax;
-                        @endphp
-                        <td>{{Utility::priceFormat($settings, $totalAmount)}}</td>
-                    </tr>
-                @endforeach
-            @else
-                <tr>
-                    <td colspan="5" style="text-align: center;">{{__('No items found')}}</td>
-                </tr>
-            @endif
-            </tbody>
-            <tfoot>
-            <tr>
-                <td colspan="7"></td>
-                <td colspan="3" class="sub-total" style="text-align: right;">
-                    <table class="total-table" style="margin-left: auto;">
-                        <tr>
-                            <td style="text-align: right; padding-right: 10px;">{{__('Subtotal')}}:</td>
-                            <td style="text-align: right;">{{Utility::priceFormat($settings, $invoice->getSubTotal())}}</td>
-                        </tr>
-                        @if($invoice->getTotalDiscount())
-                        <tr>
-                            <td style="text-align: right; padding-right: 10px;">{{__('Discount')}}:</td>
-                            <td style="text-align: right;">{{Utility::priceFormat($settings, $invoice->getTotalDiscount())}}</td>
-                        </tr>
-                        @endif
-                        @if(!empty($invoice->taxesData))
-                            @foreach($invoice->taxesData as $taxName => $taxPrice)
-                            <tr>
-                                <td style="text-align: right; padding-right: 10px;">{{$taxName}} :</td>
-                                <td style="text-align: right;">{{ Utility::priceFormat($settings, $taxPrice)  }}</td>
-                            </tr>
-                            @endforeach
-                        @endif
-                        <tr>
-                            <td style="text-align: right; padding-right: 10px;">{{__('Total')}}:</td>
-                            <td style="text-align: right;">{{Utility::priceFormat($settings, $invoice->getSubTotal() - $invoice->getTotalDiscount() + $invoice->getTotalTax())}}</td>
-                        </tr>
-                        <tr>
-                            <td style="text-align: right; padding-right: 10px;">{{__('Paid')}}:</td>
-                            <td style="text-align: right;">{{Utility::priceFormat($settings, ($invoice->getTotal() - $invoice->getDue()) - ($invoice->invoiceTotalCreditNote()))}}</td>
-                        </tr>
-                        {{-- <tr>
-                            <td style="text-align: right; padding-right: 10px;">{{__('Credit Note')}}:</td>
-                            <td style="text-align: right;">{{Utility::priceFormat($settings, ($invoice->invoiceTotalCreditNote()))}}</td>
-                        </tr> --}}
-                        <tr>
-                            <td style="text-align: right; padding-right: 10px;"><strong>{{__('Balance')}}:</strong></td>
-                            <td style="text-align: right;"><strong>{{Utility::priceFormat($settings, $invoice->getDue())}}</strong></td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            </tfoot>
-        </table>
-        <div class="invoice-footer">
-            <h4 style="margin-top: 75px;">{{$settings['footer_title'] ?? 'Developed By Miftah Technology'}}</h4> <br>
-            {!! $settings['footer_notes'] ?? 'Note Refundable' !!}
-        </div>
-    </div>
-    <table align="center" style="width: 100%;">
-        <tbody>
-            <tr>
-                <td class="company-details-center">_________________________________________________________________________________________________
-                    <p class="company-detail">
-                        @if($settings['mail_from_address']){{$settings['mail_from_address']}}@endif
-                        @if($settings['company_address']){{$settings['company_address']}}@endif
-                        @if($settings['company_city']){{$settings['company_city']}}, @endif
-                        @if($settings['company_country']) {{$settings['company_country']}}@endif
-                        @if($settings['company_telephone'])<br>{{$settings['company_telephone']}}@endif<br>
-                    </p>
-                </td>
-            </tr>
-
-        </tbody>
-    </table>
-
+<div class="action-buttons">
+  <button onclick="printCertificate()" class="btn-action btn-print">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="6 9 6 2 18 2 18 9"></polyline>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+      <rect x="6" y="14" width="12" height="8"></rect>
+    </svg>
+    Print Now
+  </button>
 </div>
 
-<div class="invoice-preview-main" id="boxes">
-    <div class="invoice-header" style="background: {{$color}};color:{{$font_color}}">
-        <!-- Logo Section -->
-        <div style="text-align: center; padding: 20px 0 5px 0;">
-            <img class="invoice-logo" src="{{$img}}" alt=""
-                style="width: auto; height: auto; max-width: 550px; max-height: none; margin-top: 75px;">
-            <p style="border-color: #007bff; border-width: 2px;">
+<div class="page">
+
+  <div class="border-top"></div>
+  <div class="border-bottom"></div>
+  <div class="border-left"></div>
+  <div class="border-right"></div>
+  <div class="inner-border"></div>
+
+  <svg class="corner corner-tl" viewBox="0 0 44 44" fill="none"><polygon points="22,2 25,15 38,15 28,24 31,37 22,29 13,37 16,24 6,15 19,15" fill="#1a6b9a" opacity="0.75"/></svg>
+  <svg class="corner corner-tr" viewBox="0 0 44 44" fill="none"><polygon points="22,2 25,15 38,15 28,24 31,37 22,29 13,37 16,24 6,15 19,15" fill="#1a6b9a" opacity="0.75"/></svg>
+  <svg class="corner corner-bl" viewBox="0 0 44 44" fill="none"><polygon points="22,2 25,15 38,15 28,24 31,37 22,29 13,37 16,24 6,15 19,15" fill="#1a6b9a" opacity="0.75"/></svg>
+  <svg class="corner corner-br" viewBox="0 0 44 44" fill="none"><polygon points="22,2 25,15 38,15 28,24 31,37 22,29 13,37 16,24 6,15 19,15" fill="#1a6b9a" opacity="0.75"/></svg>
+
+  <div class="content">
+
+    <!-- Header -->
+    <div class="header">
+      <div>
+        @if($company_logo)
+          <img src="{{ $company_logo }}" alt="Company Logo" class="company-logo">
+        @else
+          <div class="logo-name">KALSAN</div>
+          <div class="logo-sub">DRIVING SCHOOLS</div>
+        @endif
+      </div>
+      <div>
+        <div class="arabic-main">كالسان</div>
+        <div class="arabic-sub">مدارس تعليم القيادة</div>
+      </div>
+    </div>
+
+    <!-- Date -->
+    <div class="date-row">
+      <div class="date-box">DATE: @if($license){{ $license->getFormattedIssueDate() }}@else{{ now()->format('d/m/Y') }}@endif</div>
+    </div>
+
+    <!-- Centered content -->
+    <div class="center-block">
+      <div class="cert-title">(Certificate)</div>
+      <div class="cert-subtitle">Driving Course Completion</div>
+
+      <div class="photo-box">
+        @if($customer && !empty($customer->cust_image))
+          <img src="{{ asset('storage/uploads/cust_image/' . $customer->cust_image) }}" 
+               alt="{{ $customer->name }}" 
+               class="user-photo"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="photo-placeholder" style="display:none;">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="20" r="12" fill="#c8dce8"/>
+              <path d="M6 54c0-12.2 9.8-22 22-22s22 9.8 22 22" fill="#d8eaf3"/>
+            </svg>
+          </div>
+        @elseif($customer)
+          <!-- Try default customer image if customer exists but no specific cust_image -->
+          <img src="{{ asset('storage/uploads/cust_image/default.png') }}" 
+               alt="{{ $customer->name }}" 
+               class="user-photo"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+          <div class="photo-placeholder" style="display:none;">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="20" r="12" fill="#c8dce8"/>
+              <path d="M6 54c0-12.2 9.8-22 22-22s22 9.8 22 22" fill="#d8eaf3"/>
+            </svg>
+          </div>
+        @else
+          <div class="photo-placeholder">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="20" r="12" fill="#c8dce8"/>
+              <path d="M6 54c0-12.2 9.8-22 22-22s22 9.8 22 22" fill="#d8eaf3"/>
+            </svg>
+          </div>
+        @endif
+      </div>
+
+      <div class="grade-box">Grade @if($license){{ $license->grade }}@else A1 @endif</div>
+
+      <div class="holder-name">@if($customer){{ strtoupper($customer->name) }}@else CUSTOMER NAME @endif</div>
+      <div class="license-no">License No: <span>{{ \App\Models\User::find($invoice->created_by)->invoiceNumberFormat($invoice->invoice_id) }}</span></div>
+      <div class="serial">Serial No: <span>@if($license){{ $license->serial_number }}@else{{ str_pad($invoice->id, 6, '0', STR_PAD_LEFT) }}@endif</span></div>
+
+      <div class="cert-body">
+        <div>This is to certify that</div>
+        <div class="ul">The person named above has successfully completed</div>
+        <div class="ul">proficiency driving skills, road safety, and traffic</div>
+        <div class="ul">regulations.</div>
+      </div>
+    </div>
+
+    <!-- Signature section -->
+    <div class="signature-section">
+
+      <div class="sig-block">
+        <div class="sig-box"></div>
+        <div class="sig-label">Director</div>
+        <div class="sig-role">Authorized Signature</div>
+      </div>
+
+      <div class="seal-block">
+        <div class="seal-outer">
+          <div class="seal-inner">
+            <div class="seal-text">KALSAN<br>DRIVING<br>SCHOOLS<br>OFFICIAL<br>SEAL</div>
+          </div>
         </div>
+        <div class="seal-label">Official Seal</div>
+      </div>
 
-        <!-- Wavy Line -->
-        <div class="wavy-line"></div>
+      <div class="sig-block">
+        <div class="sig-box"></div>
+        <div class="sig-label">Instructor</div>
+        <div class="sig-role">Course Instructor</div>
+      </div>
 
-        <!-- Company Details - Centered -->
+    </div>
 
-        <!-- Bill To and Invoice Details Section -->
-        <table class="vertical-align-top" style="width: 100%; margin-top: 10px;">
-            <tbody>
-
-                <tr>
-                    <td style="width: 100%; vertical-align: top;">
-                        <table class="no-space" style="width: auto; margin-left: 450px;">
-                            <tbody>
-                                <tr>
-                                    <td style="padding-right: 15px;"><b>{{__('Date')}}:</b></td>
-                                    <td class="text-right">{{Utility::dateFormat($settings, $invoice->issue_date)}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-center">
-                        <h1 style="color: #007bff">(Certificate)</h1>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-center">
-                        <h2 style="color: #007bff">Driving Course Completion</h2>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-center">
-                        <img class="invoice-logo" src="{{$img}}" alt=""
-                            style="width: auto; height: 180px; max-width: 180px; margin-top: 10px; border: 1px solid #000000;">
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-center">
-                        <h3>{{ strtoupper($customer->name) }}</h3>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-center">
-                        <h3>Grade: {{ strtoupper($item->grade) }}</h3>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-center">
-                        <h3>Serial No: {{Utility::invoiceNumberFormat($settings, $invoice->invoice_id)}}</h3>
-                    </td>
-                </tr>
-                 <tr>
-                    <td class="text-center">
-                        <h2>This is to certify that</h2>
-                        <h2 style="margin-left: 35px;">The person named above has successfully completed proficiency driving skills, road safety, and
-                            traffic regulations.</h2>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-left">
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-left">
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-left">
-                    </td>
-                </tr>
-
-                <tr>
-                    <td class="text-left">
-                        <h3 style="margin-left: 35px;">Director: ____________________</h3>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-left">
-                    </td>
-                </tr>
-                <tr>
-                    <td class="text-left">
-                    </td>
-                </tr>
+  </div>
+</div>
 
 
-            </tbody>
-        </table>
 
- @if(!isset($preview))
-    @include('invoice.script');
-@endif
+<script>
+
+function printCertificate() {
+  // Hide the action buttons temporarily
+  const actionButtons = document.querySelector('.action-buttons');
+  const originalDisplay = actionButtons.style.display;
+  actionButtons.style.display = 'none';
+  
+  // Trigger print dialog
+  window.print();
+  
+  // Restore the action buttons after print dialog closes
+  setTimeout(() => {
+    actionButtons.style.display = originalDisplay;
+  }, 100);
+}
+</script>
+
+{{-- @if(!isset($preview))
+   @include('invoice.script');
+@endif --}}
+
 
 </body>
-
 </html>

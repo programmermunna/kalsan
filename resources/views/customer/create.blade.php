@@ -1,4 +1,4 @@
-{{Form::open(array('url' => 'customer', 'method' => 'post', 'class' => 'needs-validation', 'novalidate'))}}
+{{Form::open(array('url' => 'customer', 'method' => 'post', 'class' => 'needs-validation', 'novalidate', 'files' => true))}}
 <div class="modal-body">
     <h5 class="sub-title">{{__('Customer Information')}}</h5>
     <div class="row">
@@ -106,26 +106,28 @@
         </div>
 
         <div class="col-md-6 form-group">
-            {{Form::label('cust_image', __('Photo'), ['class' => 'form-label'])}}
-            <div class="choose-file ">
+            {{Form::label('cust_image', __('Customer Photo'), ['class' => 'form-label'])}}
+            <div class="choose-file">
                 <label for="cust_image" class="form-label">
                     <input type="file" class="form-control file-validate" name="cust_image" id="cust_image"
-                        data-filename="cust_image_create">
-                    <p id="" class="file-error text-danger"></p>
-                    <img id="image" class="mt-3" style="width:25%;" />
+                        accept="image/jpeg,image/png,image/jpg,image/gif" data-filename="cust_image_create">
+                    <p class="file-info text-muted small">Allowed formats: JPG, PNG, GIF (Max: 2MB)</p>
+                    <p id="cust_image_error" class="file-error text-danger"></p>
+                    <img id="cust_image_preview" class="mt-3 img-thumbnail" style="width:25%; display:none;" />
 
                 </label>
             </div>
         </div>
 
         <div class="col-md-6 form-group">
-            {{Form::label('cust_document', __('Document'), ['class' => 'form-label'])}}
-            <div class="choose-file ">
+            {{Form::label('cust_document', __('Customer Document'), ['class' => 'form-label'])}}
+            <div class="choose-file">
                 <label for="cust_document" class="form-label">
                     <input type="file" class="form-control file-validate" name="cust_document" id="cust_document"
-                        data-filename="cust_document_create">
-                    <p id="" class="file-error text-danger"></p>
-                    <img id="image" class="mt-3" style="width:25%;" />
+                        accept="image/jpeg,image/png,image/jpg,image/gif,application/pdf,.doc,.docx" data-filename="cust_document_create">
+                    <p class="file-info text-muted small">Allowed formats: JPG, PNG, GIF, PDF, DOC, DOCX (Max: 2MB)</p>
+                    <p id="cust_document_error" class="file-error text-danger"></p>
+                    <img id="cust_document_preview" class="mt-3 img-thumbnail" style="width:25%; display:none;" />
 
                 </label>
             </div>
@@ -295,6 +297,38 @@ $(document).ready(function() {
             $('.ps_div').addClass('d-none');
             $('#password').val(null).removeAttr("required");
         }
+    });
+
+    // File preview functionality
+    $('#cust_image').on('change', function() {
+        var file = this.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#cust_image_preview').attr('src', e.target.result).show();
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    $('#cust_document').on('change', function() {
+        var file = this.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#cust_document_preview').attr('src', e.target.result).show();
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form validation feedback
+    $('.needs-validation').on('submit', function(e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        this.classList.add('was-validated');
     });
 });
 </script>
