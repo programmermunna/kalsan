@@ -1,0 +1,43 @@
+.custom-login {
+    background: var(--bs-dark);
+}
+.custom-login .navbar {
+    background: var(--bs-dark);
+   
+}
+
+.custom-login .navbar .nav-link ,
+body .custom-login .dash-header .drp-language .drp-text{
+   
+    color: var(--bs-white);
+}
+.custom-login .dropdown-toggle::after {
+
+    filter: invert(1);
+}
+.custom-login .custom-wrapper .card .card-body {
+    background-color: var(--bs-card-bg);
+}
+.custom-login .navbar .nav-item .nav-link::after {
+  
+    background: var(--bs-white);
+}
+.custom-login .drp-language a span{
+    color: #fff !important;
+}
+.custom-login .drp-language .btn {
+    background: #292a33;
+}
+.custom-login .drp-language .drp-text {
+    color: var(--bs-green);
+}
+.custom-login .drp-language .btn.show {
+    border-color: transparent;
+}
+.custom-login .navbar .navbar-toggler-icon {
+    filter: invert(1);
+}
+.custom-login .navbar .navbar-collapse .navbar-nav{
+    margin-left: 0 !important;
+
+}

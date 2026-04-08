@@ -1,0 +1,14 @@
+/vendor
+/node_modules
+/.idea
+/.vscode
+.env
+/vendor/srmklive/paypal/tests/Mocks/samples/sample2.pdf
+/vendor/srmklive/paypal/tests/Mocks/samples/sample.pdf
+/storage/framework/cache/*
+/storage/debugbar/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+/bootstrap/cache/*

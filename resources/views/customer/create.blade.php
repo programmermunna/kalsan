@@ -1,0 +1,300 @@
+{{Form::open(array('url' => 'customer', 'method' => 'post', 'class' => 'needs-validation', 'novalidate'))}}
+<div class="modal-body">
+    <h5 class="sub-title">{{__('Customer Information')}}</h5>
+    <div class="row">
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('name', __('Customer Name'), array('class' => 'form-label')) }}<x-required></x-required>
+                {{Form::text('name', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Name')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('mother_name', __('Mother Name'), array('class' => 'form-label')) }}<x-required></x-required>
+                {{Form::text('mother_name', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Mother Name')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('gender', __('Gender'), ['class' => 'form-label'])}}<x-required></x-required>
+                {{Form::select('gender', ['Male' => 'Male', 'Female' => 'Female'], old('gender'), ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Select Gender'), 'style' => 'width: 235px;']) }}
+            </div>
+        </div>
+
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{ Form::label('dob', __('Date of Birth'), ['class' => 'form-label']) }}<x-required></x-required>
+                <div class="form-icon-user">
+                    {{Form::date('dob', null, array('class' => 'form-control', 'required' => 'required'))}}
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('pob', __('Place of Birth'), array('class' => 'form-label')) }}<x-required></x-required>
+                {{Form::text('pob', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Place of Birth')))}}
+            </div>
+        </div>
+        {{-- <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                <x-Mobile label="Mobile" name="contact" placeholder="{{__('Enter Mobile')}}" required></x-Mobile>
+            </div>
+        </div> --}}
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('contact', __('Mobile'), ['class' => 'form-label'])}}<x-required></x-required>
+                {{Form::number('contact', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Mobile')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('email', __('Email'), ['class' => 'form-label'])}}
+                {{Form::email('email', null, array('class' => 'form-control', 'placeholder' => __('Enter email')))}}
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('billing_address', __('Address'), array('class' => 'form-label')) }}
+                {{Form::text('billing_address', null, array('class' => 'form-control', 'rows' => 3, 'placeholder' => __('Enter Address')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('billing_city', __('City'), array('class' => 'form-label')) }}
+                {{Form::text('billing_city', null, array('class' => 'form-control', 'placeholder' => __('Enter City')))}}
+
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('billing_state', __('State'), array('class' => 'form-label')) }}
+                {{Form::text('billing_state', null, array('class' => 'form-control', 'placeholder' => __('Enter State')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('billing_country', __('Country'), array('class' => 'form-label')) }}
+                {{Form::text('billing_country', null, array('class' => 'form-control', 'placeholder' => __('Enter Country')))}}
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{ Form::label('reg_date', __('Registration Date'), ['class' => 'form-label']) }}<x-required></x-required>
+                <div class="form-icon-user">
+                    {{Form::date('reg_date', null, array('class' => 'form-control', 'required' => 'required'))}}
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('type', __('Document Type'), ['class' => 'form-label'])}}<x-required></x-required>
+                {{Form::select('type', ['Passport' => 'Passport', 'Dhalasho' => 'Dhalasho', 'NIRA' => 'NIRA'], old('type'), ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Select Document Type'), 'style' => 'width: 235px;']) }}
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('serial_no', __('Serial #'), array('class' => 'form-label')) }}<x-required></x-required>
+                {{Form::text('serial_no', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter serial no')))}}
+            </div>
+        </div>
+
+        <div class="col-md-6 form-group">
+            {{Form::label('cust_image', __('Photo'), ['class' => 'form-label'])}}
+            <div class="choose-file ">
+                <label for="cust_image" class="form-label">
+                    <input type="file" class="form-control file-validate" name="cust_image" id="cust_image"
+                        data-filename="cust_image_create">
+                    <p id="" class="file-error text-danger"></p>
+                    <img id="image" class="mt-3" style="width:25%;" />
+
+                </label>
+            </div>
+        </div>
+
+        <div class="col-md-6 form-group">
+            {{Form::label('cust_document', __('Document'), ['class' => 'form-label'])}}
+            <div class="choose-file ">
+                <label for="cust_document" class="form-label">
+                    <input type="file" class="form-control file-validate" name="cust_document" id="cust_document"
+                        data-filename="cust_document_create">
+                    <p id="" class="file-error text-danger"></p>
+                    <img id="image" class="mt-3" style="width:25%;" />
+
+                </label>
+            </div>
+        </div>
+
+        {{-- <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('balance', __('Balance'), ['class' => 'form-label'])}}
+                {{Form::number('balance', null, array('class' => 'form-control', 'placeholder' => __('Enter Balance')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('commission', __('Customer Commission'), ['class' => 'form-label'])}}
+                {{Form::number('commission', null, array('class' => 'form-control', 'placeholder' => __('Enter customer commission')))}}
+            </div>
+        </div>
+
+        <div class="col-md-12 customer-login-section" style="display: none;">
+            <div class="row">
+                <div class="col-md-5 mb-3 form-group">
+                    <label for="password_switch">{{ __('Login is enable') }}</label>
+                    <div class="form-check form-switch custom-switch-v1 float-end">
+                        <input type="checkbox" name="password_switch" class="form-check-input input-primary pointer" value="on" id="password_switch">
+                        <label class="form-check-label" for="password_switch"></label>
+                    </div>
+                </div>
+                <div class="col-md-12 ps_div d-none">
+                    <div class="form-group">
+                        {{ Form::label('password', __('Password'), ['class' => 'form-label']) }}<x-required></x-required>
+                        {{ Form::password('password', ['class' => 'form-control', 'placeholder' => __('Enter Password'), 'minlength' => '6']) }}
+                        @error('password')
+                            <small class="invalid-password" role="alert">
+                                <strong class="text-danger">{{ $message }}</strong>
+                            </small>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if(!$customFields->isEmpty())
+                    @include('customFields.formBuilder')
+        @endif
+    </div>
+
+     <h5 class="sub-title">{{__('Billing Address')}}</h5>
+    <div class="row">
+        {{-- <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('billing_name', __('Name'), array('class' => '', 'class' => 'form-label')) }}
+                {{Form::text('billing_name', null, array('class' => 'form-control', 'placeholder' => __('Enter Name')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                <x-Mobile label="{{_('Phone')}}" name="billing_phone" placeholder="{{__('Enter Phone')}}"></x-Mobile>
+            </div>
+        </div>
+
+
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('billing_zip', __('Zip Code'), array('class' => 'form-label')) }}
+                {{Form::text('billing_zip', null, array('class' => 'form-control', 'placeholder' => __('Enter Zip Code')))}}
+
+            </div>
+        </div>
+
+    </div> --}}
+
+    @if(App\Models\Utility::getValByName('shipping_display') == 'on')
+        <div class="col-md-12 text-end">
+            <input type="button" id="billing_data" value="{{__('Shipping Same As Billing')}}" class="btn btn-primary">
+        </div>
+        <h5 class="sub-title">{{__('Shipping Address')}}</h5>
+        <div class="row">
+            <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="form-group">
+                    {{Form::label('shipping_name', __('Name'), array('class' => 'form-label')) }}
+                    {{Form::text('shipping_name', null, array('class' => 'form-control', 'placeholder' => __('Enter Name')))}}
+
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="form-group">
+                    <x-Mobile name="shipping_phone" label="{{__('Phone')}}" placeholder="{{__('Enter Phone')}}"></x-Mobile>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <div class="form-group">
+                    {{Form::label('shipping_address', __('Address'), array('class' => 'form-label')) }}
+                    <label class="form-label" for="example2cols1Input"></label>
+                    {{Form::textarea('shipping_address', null, array('class' => 'form-control', 'rows' => 3, 'placeholder' => __('Enter Address')))}}
+
+                </div>
+            </div>
+
+
+            <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="form-group">
+                    {{Form::label('shipping_city', __('City'), array('class' => 'form-label')) }}
+                    {{Form::text('shipping_city', null, array('class' => 'form-control', 'placeholder' => __('Enter City')))}}
+
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="form-group">
+                    {{Form::label('shipping_state', __('State'), array('class' => 'form-label')) }}
+                    {{Form::text('shipping_state', null, array('class' => 'form-control', 'placeholder' => __('Enter State')))}}
+
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="form-group">
+                    {{Form::label('shipping_country', __('Country'), array('class' => 'form-label')) }}
+                    {{Form::text('shipping_country', null, array('class' => 'form-control', 'placeholder' => __('Enter Country')))}}
+
+                </div>
+            </div>
+
+
+            <div class="col-lg-4 col-md-4 col-sm-6">
+                <div class="form-group">
+                    {{Form::label('shipping_zip', __('Zip Code'), array('class' => 'form-label')) }}
+                    {{Form::text('shipping_zip', null, array('class' => 'form-control', 'placeholder' => __('Enter Zip Code')))}}
+
+                </div>
+            </div>
+
+        </div>
+    @endif
+
+</div>
+<div class="modal-footer">
+    <input type="button" value="{{__('Cancel')}}" class="btn btn-secondary" data-bs-dismiss="modal">
+    <input type="submit" value="{{__('Create')}}" class="btn btn-primary">
+</div>
+{{Form::close()}}
+
+<script>
+$(document).ready(function() {
+    // Show/hide login section based on customer type
+    $('select[name="type"]').on('change', function() {
+        if($(this).val() == 'Travel Agency') {
+            $('.customer-login-section').show();
+        } else {
+            $('.customer-login-section').hide();
+            $('#password_switch').prop('checked', false);
+            $('.ps_div').addClass('d-none');
+            $('#password').val('').removeAttr('required');
+        }
+    });
+
+    // Trigger on page load if type is already selected
+    if($('select[name="type"]').val() == 'Travel Agency') {
+        $('.customer-login-section').show();
+    }
+
+    // Password switch toggle
+    $(document).on('change', '#password_switch', function() {
+        if ($(this).is(':checked')) {
+            $('.ps_div').removeClass('d-none');
+            $('#password').attr("required", true);
+        } else {
+            $('.ps_div').addClass('d-none');
+            $('#password').val(null).removeAttr("required");
+        }
+    });
+});
+</script>
