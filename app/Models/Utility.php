@@ -4767,7 +4767,6 @@ class Utility extends Model
         $transactionLines->reference_id     = $data['reference_id'];
         $transactionLines->reference_sub_id = $data['reference_sub_id'];
         $transactionLines->customer_id      = $data['customer_id'];
-        $transactionLines->vender_id        = $data['vender_id'];
         $transactionLines->date             = $data['date'];
 
         if ($data['transaction_type'] == "credit") {

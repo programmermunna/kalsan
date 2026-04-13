@@ -6,8 +6,9 @@
             {{ Form::date('date', '', array('class' => 'form-control ','required'=>'required')) }}
         </div>
         <div class="form-group  col-md-6">
+
             {{ Form::label('amount', __('Amount'),['class'=>'form-label']) }}<x-required></x-required>
-            {{ Form::number('amount',$invoice->getDue(), array('class' => 'form-control','required'=>'required','step'=>'0.01', 'placeholder'=>__('Enter Amount'))) }}
+            {{ Form::number('amount',$invoice->getDue() * 5 / 100 + $invoice->getDue(), array('class' => 'form-control','required'=>'required','step'=>'0.01', 'placeholder'=>__('Enter Amount'))) }}
         </div>
         <div class="form-group  col-md-6">
             {{ Form::label('account_id', __('Account'),['class'=>'form-label']) }}<x-required></x-required>
@@ -16,8 +17,6 @@
                 {{ __('Create account here.') }} <a href="{{ route('bank-account.index') }}"><b>{{ __('Create account') }}</b></a>
             </div>
         </div>
-
-
 
         <div class="form-group  col-md-6">
             {{ Form::label('reference', __('Reference'),['class'=>'form-label']) }}
@@ -37,7 +36,6 @@
                 <p class="upload_file"></p>
             </div>
         </div> --}}
-
 
     </div>
     <div class="modal-footer">

@@ -231,7 +231,7 @@ class InvoiceController extends Controller
             $invoice->customer_id    = $request->customer_id;
             $invoice->status         = 0;
             $invoice->issue_date     = $request->issue_date;
-            $invoice->due_date     = $request->due_date;
+            $invoice->due_date       = $request->due_date;
             //$invoice->created_by     = $user->creatorId();
             $invoice->created_by     = \Auth::id();
             $invoice->branch_id      = $branchId;
@@ -246,7 +246,7 @@ class InvoiceController extends Controller
                 // Product no longer used; store as 0 to satisfy NOT NULL columns
                 $invoiceProduct->product_id  = !empty($products[$i]['product_id']) ? $products[$i]['product_id'] : 1;
                 $invoiceProduct->type        = $products[$i]['type'] ?? null;
-                $invoiceProduct->grade        = $products[$i]['grade'] ?? null;
+                $invoiceProduct->grade       = $products[$i]['grade'] ?? null;
                 $financials = $this->prepareInvoiceProductFinancials($products[$i]);
                 $invoiceProduct->quantity = $financials['quantity'];
                 $invoiceProduct->net = $financials['net'];
@@ -254,10 +254,10 @@ class InvoiceController extends Controller
                 $invoiceProduct->tax = $financials['tax'];
                 $invoiceProduct->refund = $financials['refund'];
                 $invoiceProduct->commission = $financials['commission'];
-                $invoiceProduct->discount = $financials['discount'];
-                $invoiceProduct->price = $financials['price'];
-                $invoiceProduct->cost =  $invoiceProduct->fare + $invoiceProduct->tax + $invoiceProduct->commission;
-
+                $invoiceProduct->cust_commission =  $invoiceProduct->net + $invoiceProduct->fare + $invoiceProduct->tax + $invoiceProduct->commission + $invoiceProduct->refund;
+                $invoiceProduct->vat =  $invoiceProduct->cust_commission * 5 / 100; //
+                $invoiceProduct->price = $invoiceProduct->net + $invoiceProduct->fare + $invoiceProduct->tax + $invoiceProduct->commission + $invoiceProduct->refund + $invoiceProduct->vat;
+                $invoiceProduct->cost =  $invoiceProduct->net + $invoiceProduct->fare + $invoiceProduct->tax + $invoiceProduct->commission + $invoiceProduct->refund + $invoiceProduct->vat;
 
                 $invoiceProduct->description = $products[$i]['description'] ?? '';
                 if (!empty($invoiceProduct->product_id)) {
@@ -411,13 +411,8 @@ class InvoiceController extends Controller
                     $request->all(),
                     [
                         'customer_id' => 'required',
-                        'vender_id' => 'required',
                         'issue_date' => 'required',
                         'due_date' => 'required',
-                        'category_id' => 'required',
-                        'vender_id' => 'required',
-                        'origin' => 'required',
-                        'destination' => 'required',
                         'items' => 'required',
                     ]
                 );
@@ -451,7 +446,8 @@ class InvoiceController extends Controller
                 $updatePrice = 0;
 
                 for ($i = 0; $i < count($products); $i++) {
-                    $invoiceProduct = InvoiceProduct::find($products[$i]['id']);
+                    if (isset($products[$i]['id']) && !empty($products[$i]['id'])) {
+                       $invoiceProduct = InvoiceProduct::find($products[$i]['id']);
 
                     if ($invoiceProduct == null)
                     {
@@ -470,11 +466,20 @@ class InvoiceController extends Controller
                         }
                     }
 
+                      } else {
+        // This is a new product being added
+        $invoiceProduct = new InvoiceProduct();
+        $invoiceProduct->invoice_id = $invoice->id;
+
+        // Only update inventory if product_id exists
+        if (!empty($products[$i]['product_id'])) {
+            Utility::total_quantity('minus', $products[$i]['quantity'] ?? 0, $products[$i]['product_id']);
+        }
+    }
+
                     // Product no longer used; store as 0 to satisfy NOT NULL columns
                     $invoiceProduct->product_id = !empty($products[$i]['product_id']) ? $products[$i]['product_id'] : 1;
                     $invoiceProduct->type        = $products[$i]['type'] ?? null;
-                    $invoiceProduct->ticket_number = $products[$i]['ticket_number'] ?? null;
-                    $invoiceProduct->passanger_name = $products[$i]['passanger_name'] ?? null;
                     $financials = $this->prepareInvoiceProductFinancials($products[$i]);
                     $invoiceProduct->quantity = $financials['quantity'];
                     $invoiceProduct->fare = $financials['fare'];
@@ -484,7 +489,7 @@ class InvoiceController extends Controller
                     $invoiceProduct->cust_commission = $financials['cust_commission'];
                     $invoiceProduct->discount = $financials['discount'];
                     $invoiceProduct->price = $financials['price'];
-                    $invoiceProduct->cost =  $invoiceProduct->fare + $invoiceProduct->tax - $invoiceProduct->commission;
+                    $invoiceProduct->cost =  $invoiceProduct->fare + $invoiceProduct->tax + $invoiceProduct->commission;
                     $invoiceProduct->description = $products[$i]['description'] ?? '';
                     $invoiceProduct->save();
 
@@ -730,7 +735,7 @@ class InvoiceController extends Controller
 
     public function destroy(Invoice $invoice,Request $request)
     {
-        if(\Auth::user()->type == 'client' || \Auth::user()->can('delete invoice'))
+        if(\Auth::user()->type == 'sales' || \Auth::user()->can('delete invoice'))
         {
             if($invoice->created_by = \Auth::user()->creatorId())
 
@@ -935,7 +940,6 @@ class InvoiceController extends Controller
                             'transaction_amount' => $itemAmount,
                             'reference' => 'Invoice-Sales',
                             'reference_id' => $invoice->id,
-                            'reference_id' => $invoice->id,
                             'reference_sub_id' => $product->id,
                             'customer_id' => $invoice->customer_id,
                             'vender_id' => '0',
@@ -959,8 +963,6 @@ class InvoiceController extends Controller
                             'date' => $invoice->issue_date,
                         ];
                         Utility::addTransactionLines($data);
-
-
 
                 }
 
@@ -1405,6 +1407,7 @@ class InvoiceController extends Controller
             $item->tax      = 5;
             $item->discount = 50;
             $item->price    = 100;
+             $item->cost    = 100;
             $item->unit     = 1;
 
             $taxes = [
@@ -1470,7 +1473,7 @@ class InvoiceController extends Controller
         return view('invoice.templates.' . $template, compact('invoice', 'preview', 'color', 'img', 'settings', 'customer', 'font_color', 'customFields'));
     }
 
-    public function invoice($invoice_id)
+    public function invoice($invoice_id, $template = null)
     {
         $settings = Utility::settings();
 
@@ -1508,6 +1511,7 @@ class InvoiceController extends Controller
             $item->discount    = $product->discount;
             $item->price       = $product->price;
             $item->description = $product->description;
+            $item->grade       = $product->grade;
 
             $totalQuantity += $item->quantity;
             $totalRate     += $item->price;
@@ -1586,7 +1590,8 @@ class InvoiceController extends Controller
             $color      = '#' . $settings['invoice_color'];
             $font_color = Utility::getFontColor($color);
 
-            return view('invoice.templates.' . $settings['invoice_template'], compact('invoice', 'color', 'settings', 'customer', 'img', 'font_color', 'customFields'));
+            $templateToUse = $template ?: $settings['invoice_template'];
+            return view('invoice.templates.' . $templateToUse, compact('invoice', 'color', 'settings', 'customer', 'img', 'font_color', 'customFields'));
         }
         else
         {
@@ -1714,7 +1719,8 @@ class InvoiceController extends Controller
         $discount = (float) ($product['discount'] ?? 0);
 
         $rowSubTotal = $fareAmount + $tax + $commission + $refund;
-        $rowTotal = $rowSubTotal - $discount;
+        $vatAmount = ($rowSubTotal * $net) / 100;
+        $rowTotal = $rowSubTotal + $vatAmount;
 
         return [
             'quantity' => $quantity,

@@ -380,7 +380,7 @@
         @if ($invoice->status != 0)
             <div class="row justify-content-between align-items-center mb-3">
                 <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
-                    @if ($invoice->status != 4)
+                    {{-- @if ($invoice->status != 4)
                         <div class="all-button-box">
                             <a href="#" class="btn btn-sm btn-primary"
                                 data-url="{{ route('invoice.credit.note', $invoice->id) }}" data-ajax-popup="true"
@@ -388,20 +388,21 @@
                                 {{ __('Apply Credit Note') }}
                             </a>
                         </div>
-                    @endif
-                    @if ($invoice->status != 4)
+                    @endif --}}
+                    {{-- @if ($invoice->status != 4)
                         <div class="all-button-box">
                             <a href="{{ route('invoice.payment.reminder', $invoice->id) }}"
-                                class="btn btn-sm btn-primary">{{ __('Receipt Reminder') }}</a>
+                                class="btn btn-sm btn-primary">{{ __('Receipt') }}</a>
                         </div>
-                    @endif
+                    @endif --}}
                     <div class="all-button-box">
-                        <a href="{{ route('invoice.resent', $invoice->id) }}"
-                            class="btn btn-sm btn-primary">{{ __('Reapprove Invoice') }}</a>
+                        <a href="{{ route('invoice.pdf', [Crypt::encrypt($invoice->id), 'template2']) }}" target="_blank"
+                            class="btn btn-sm btn-primary">{{ __('Receipt') }}</a>
                     </div>
+
                     <div class="all-button-box">
                         <a href="{{ route('invoice.pdf', Crypt::encrypt($invoice->id)) }}" target="_blank"
-                            class="btn btn-sm btn-primary">{{ __('Print') }}</a>
+                            class="btn btn-sm btn-primary">{{ __('Certificate') }}</a>
                     </div>
                 </div>
             </div>
@@ -573,7 +574,6 @@
                                                     <th class="text-dark">{{ __('Shahado') }}</th>
                                                     <th class="text-dark">{{ __('Buugga') }}</th>
                                                     <th class="text-dark">{{ __('Tijaabo Qadka') }}</th>
-                                                    <th class="text-dark">{{ __('Discount') }}</th>
 
                                                     <th class="text-end text-dark" width="12%">{{ __('Amount') }}<br>
                                                         <small class="text-danger font-weight-bold">{{ __('after discount') }}</small>
@@ -589,6 +589,7 @@
                                                     'commission' => 0,
                                                     'discount' => 0,
                                                     'before_discount' => 0,
+                                                    'vat' => 0,
                                                     'after_discount' => 0,
                                                     'tax' => 0,
                                                 ];
@@ -603,8 +604,13 @@
                                                     $refund = (float) ($iteam->refund ?? 0);
                                                     $commission = (float) ($iteam->commission ?? 0);
                                                     $discount = (float) ($iteam->discount ?? 0);
-                                                    $lineAmount = $net + $fareAmount + $tax + $commission + $refund;
-                                                    $lineSubtotal = $lineAmount  - $discount;
+
+
+                                                    $lineAmount1 = $net + $fareAmount + $tax + $commission + $refund;
+                                                    $lineSubtotal = $lineAmount1  - $discount;
+                                                    $vat = $lineAmount1 * 5 / 100;
+
+                                                    $lineAmount = $net + $fareAmount + $tax + $commission + $refund + $vat;
 
                                                     $totals['net'] += $net;
                                                     $totals['fare'] += $fareAmount;
@@ -614,6 +620,7 @@
                                                     $totals['discount'] += $discount;
                                                     $totals['before_discount'] += $lineSubtotal;
                                                     $totals['after_discount'] += $lineAmount;
+                                                    $totals['vat'] += $vat;
 
                                                     $itemTaxes = [];
                                                     $itemTaxPrice = 0;
@@ -646,7 +653,6 @@
                                                     <td>{{ \Auth::user()->priceFormat($tax) }}</td>
                                                     <td>{{ \Auth::user()->priceFormat($refund) }}</td>
                                                     <td>{{ \Auth::user()->priceFormat($commission) }}</td>
-                                                    <td>{{ \Auth::user()->priceFormat($discount) }}</td>
                                                     {{-- <td>
                                                         @if (!empty($itemTaxes))
                                                             <table>
@@ -677,17 +683,17 @@
                                             @endforeach
                                             <tfoot>
                                                 <tr>
-                                                    <td colspan="8"></td>
+                                                    <td colspan="7"></td>
                                                     <td class="text-end"><b>{{ __('Sub Total') }}</b></td>
                                                     <td class="text-end">
                                                         {{ \Auth::user()->priceFormat($totals['before_discount']) }}</td>
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="8"></td>
-                                                    <td class="text-end"><b>{{ __('Discount') }}</b></td>
+                                                    <td colspan="7"></td>
+                                                    <td class="text-end"><b>{{ __('VAT 5%') }}</b></td>
                                                     <td class="text-end">
-                                                        {{ \Auth::user()->priceFormat($totals['discount']) }}
+                                                        {{ \Auth::user()->priceFormat($totals['vat']) }}
                                                     </td>
                                                 </tr>
 
@@ -702,7 +708,7 @@
                                                     @endforeach
                                                 @endif
                                                 <tr>
-                                                    <td colspan="8"></td>
+                                                    <td colspan="7"></td>
                                                     <td class="blue-text text-end"><b>{{ __('Total') }}</b></td>
                                                     <td class="blue-text text-end">
                                                         {{ \Auth::user()->priceFormat($totals['after_discount']) }}</td>
@@ -716,13 +722,13 @@
                                                     $dueAmount = max($grandTotal - $paidAmount - $creditNote, 0);
                                                 @endphp
                                                 <tr>
-                                                    <td colspan="8"></td>
+                                                    <td colspan="7"></td>
                                                     <td class="text-end"><b>{{ __('Paid') }}</b></td>
                                                     <td class="text-end">
                                                         {{ \Auth::user()->priceFormat($paidAmount) }}
                                                     </td>
                                                 </tr>
-                                                <tr>
+                                                {{-- <tr>
                                                     <td colspan="8"></td>
                                                     <td class="text-end"><b>{{ __('Credit Note Applied') }}</b></td>
                                                     <td class="text-end">{{ \Auth::user()->priceFormat($creditNote) }}
@@ -734,9 +740,9 @@
                                                     <td class="text-end">
                                                         {{ \Auth::user()->priceFormat($customerCreditNote) }}
                                                     </td>
-                                                </tr>
+                                                </tr> --}}
                                                 <tr>
-                                                    <td colspan="8"></td>
+                                                    <td colspan="7"></td>
                                                     <td class="text-end"><b>{{ __('Due') }}</b></td>
                                                     <td class="text-end">
                                                         {{ \Auth::user()->priceFormat($dueAmount) }}
@@ -914,7 +920,7 @@
             </div>
         </div>
     </div>
-    <div class="row">
+    {{-- <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-body table-border-style">
@@ -983,5 +989,5 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> --}}
 @endsection

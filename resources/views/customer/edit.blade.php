@@ -6,7 +6,8 @@
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('name', __('Customer Name'), array('class' => 'form-label')) }}<x-required></x-required>
-                {{Form::text('name', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Name')))}}
+                {{Form::text('name', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Full Name')))}}
+
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-6">
@@ -18,15 +19,17 @@
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('gender', __('Gender'), ['class' => 'form-label'])}}<x-required></x-required>
-                {{Form::select('gender', ['Male' => 'Male', 'Female' => 'Female'], old('gender', $customer->gender ?? ''), ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Select Gender'), 'style' => 'width: 235px;']) }}
+                {{Form::select('gender', ['Male' => 'Male', 'Female' => 'Female'], old('gender'), ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Select Gender'), 'style' => 'width: 235px;']) }}
             </div>
         </div>
+
 
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{ Form::label('dob', __('Date of Birth'), ['class' => 'form-label']) }}<x-required></x-required>
                 <div class="form-icon-user">
                     {{Form::date('dob', null, array('class' => 'form-control', 'required' => 'required'))}}
+
                 </div>
             </div>
         </div>
@@ -36,6 +39,11 @@
                 {{Form::text('pob', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter Place of Birth')))}}
             </div>
         </div>
+        {{-- <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                <x-Mobile label="Mobile" name="contact" placeholder="{{__('Enter Mobile')}}" required></x-Mobile>
+            </div>
+        </div> --}}
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('contact', __('Mobile'), ['class' => 'form-label'])}}<x-required></x-required>
@@ -52,13 +60,14 @@
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('billing_address', __('Address'), array('class' => 'form-label')) }}
-                {{Form::text('billing_address', null, array('class' => 'form-control', 'placeholder' => __('Enter Address')))}}
+                {{Form::text('billing_address', null, array('class' => 'form-control', 'rows' => 3, 'placeholder' => __('Enter Address')))}}
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('billing_city', __('City'), array('class' => 'form-label')) }}
                 {{Form::text('billing_city', null, array('class' => 'form-control', 'placeholder' => __('Enter City')))}}
+
             </div>
         </div>
         <div class="col-lg-4 col-md-4 col-sm-6">
@@ -79,6 +88,7 @@
                 {{ Form::label('reg_date', __('Registration Date'), ['class' => 'form-label']) }}<x-required></x-required>
                 <div class="form-icon-user">
                     {{Form::date('reg_date', null, array('class' => 'form-control', 'required' => 'required'))}}
+
                 </div>
             </div>
         </div>
@@ -86,7 +96,7 @@
         <div class="col-lg-4 col-md-4 col-sm-6">
             <div class="form-group">
                 {{Form::label('type', __('Document Type'), ['class' => 'form-label'])}}<x-required></x-required>
-                {{Form::select('type', ['Passport' => 'Passport', 'Dhalasho' => 'Dhalasho', 'NIRA' => 'NIRA'], old('type', $customer->type ?? ''), ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Select Document Type'), 'style' => 'width: 235px;']) }}
+                {{Form::select('type', ['Passport' => 'Passport', 'Dhalasho' => 'Dhalasho', 'NIRA' => 'NIRA'], old('type'), ['class' => 'form-control', 'required' => 'required', 'placeholder' => __('Select Document Type'), 'style' => 'width: 235px;']) }}
             </div>
         </div>
 
@@ -94,6 +104,24 @@
             <div class="form-group">
                 {{Form::label('serial_no', __('Serial #'), array('class' => 'form-label')) }}<x-required></x-required>
                 {{Form::text('serial_no', null, array('class' => 'form-control', 'required' => 'required', 'placeholder' => __('Enter serial no')))}}
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                 </div>
+        </div>
+
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('body', __('Health Body'), array('class' => 'form-label')) }}
+                {{Form::text('body', null, array('class' => 'form-control', 'placeholder' => __('Enter Health Body')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('eye', __('Eye'), array('class' => 'form-label')) }}
+                {{Form::text('eye', null, array('class' => 'form-control', 'placeholder' => __('Enter Eye Health')))}}
             </div>
         </div>
 
@@ -140,25 +168,6 @@
             </div>
         </div>
 
-        <div class="col-lg-4 col-md-4 col-sm-6">
-            <div class="form-group">
-                {{Form::label('customer_type', __('Customer Type'), ['class' => 'form-label'])}}
-                {{Form::select('customer_type', ['Person' => 'Person', 'Travel Agency' => 'Travel Agency', 'Organization' => 'Organization'], old('customer_type', $customer->type ?? ''), ['class' => 'form-control', 'placeholder' => __('Select Customer Type'), 'style' => 'width: 235px;']) }}
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-4 col-sm-6">
-            <div class="form-group">
-                {{Form::label('balance', __('Balance'), ['class' => 'form-label'])}}
-                {{Form::number('balance', null, array('class' => 'form-control', 'placeholder' => __('Enter Balance')))}}
-            </div>
-        </div>
-        <div class="col-lg-4 col-md-4 col-sm-6">
-          <div class="form-group">
-            {{Form::label('commission', __('Customer Commission'), ['class' => 'form-label'])}}
-            {{Form::number('commission', null, array('class' => 'form-control', 'placeholder' => __('Enter customer commission')))}}
-           </div>
-        </div>
-
         @if($customer->type == 'Travel Agency' || old('customer_type') == 'Travel Agency')
         <div class="col-md-12 customer-login-section" style="display: {{ $customer->type == 'Travel Agency' ? 'block' : 'none' }};">
             <div class="row">
@@ -187,7 +196,7 @@
         @if(!$customFields->isEmpty())
                     @include('customFields.formBuilder')
         @endif
-    </div>
+    </>
 
     {{-- <h5 class="sub-title">{{__('Billing Address')}}</h5>
     <div class="row">

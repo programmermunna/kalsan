@@ -105,6 +105,19 @@
             </div>
         </div>
 
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('body', __('Health Body'), array('class' => 'form-label')) }}
+                {{Form::text('body', null, array('class' => 'form-control', 'placeholder' => __('Enter Health Body')))}}
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 col-sm-6">
+            <div class="form-group">
+                {{Form::label('eye', __('Eye'), array('class' => 'form-label')) }}
+                {{Form::text('eye', null, array('class' => 'form-control', 'placeholder' => __('Enter Eye Health')))}}
+            </div>
+        </div>
+
         <div class="col-md-6 form-group">
             {{Form::label('cust_image', __('Customer Photo'), ['class' => 'form-label'])}}
             <div class="choose-file">

@@ -40,14 +40,14 @@
     <div class="float-end">
         @can('create invoice')
             <a href="{{ route('invoice.create',$customer->id) }}" class="btn btn-sm bg-light-green-subtitle text-white me-1">
-                {{__('Create Invoice')}}
+                {{__('Create License')}}
             </a>
         @endcan
-        @can('create proposal')
+       {{--  @can('create proposal')
             <a href="{{ route('proposal.create',$customer->id) }}" class="btn btn-sm btn-primary-subtle text-white me-1">
                 {{__('Create Proposal')}}
             </a>
-        @endcan
+        @endcan --}}
 
         @can('edit customer')
             <a href="#" data-size="lg" data-url="{{ route('customer.edit',$customer['id']) }}" data-ajax-popup="true" title="{{__('Edit Customer')}}" data-bs-toggle="tooltip" data-original-title="{{__('Edit')}}" class="btn btn-sm btn-info me-1">

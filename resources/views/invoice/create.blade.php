@@ -298,10 +298,10 @@
                     var row = $(this).find('tr:first-child');
                     var rowTotals = computeRowTotals(row);
                     subTotal += rowTotals.subTotal;
-                    totalDiscount += rowTotals.discount;
+                    totalDiscount += rowTotals.subTotal * 5 /100; // Assuming VAT is 5% of the subtotal. Adjust this formula as needed.
                 });
 
-                var grandTotal = subTotal - totalDiscount;
+                var grandTotal = subTotal + totalDiscount;
 
                 $('.subTotal').html(subTotal.toFixed(2));
                 $('.totalDiscount').html(totalDiscount.toFixed(2));
@@ -329,8 +329,8 @@
             // Real-time calculation on input changes
             $(document).on('keyup change input', '.net', function () {
                 var row = $(this).closest('tbody[data-repeater-item]').find('tr:first-child');
-               // calculateTax(row);
-               // calculateFareCommission(row); // This will also call calculateDiscount internally
+                calculateTax(row);
+                calculateFareCommission(row); // This will also call calculateDiscount internally
                 calculateItemTotal(row);
                 calculateItemTotal(row);
                 calculateGrandTotal();
@@ -506,7 +506,6 @@
                                 <th>{{__('Shahado')}} </th>
                                 <th>{{__('Buugga')}} </th>
                                 <th>{{__('Tijaabo Qadka')}} </th>
-                                <th>{{__('Discount')}}</th>
                                 <th class="text-end">{{__('Total Amount')}} <br><small class="text-danger font-weight-bold">{{__('after discount')}}</small></th>
                                 <th></th>
                             </tr>
@@ -521,7 +520,6 @@
                                 <td class="form-group pt-0">
                                     {{ Form::select('grade', ['A' => 'A', 'A1' => 'A1', 'B' => 'B', 'C' => 'C', 'C1' => 'C1', 'D' => 'D', 'E' => 'E', 'F' => 'F', 'G' => 'G'], old('title', $user->title ?? ''), ['class' => 'form-control', 'style' => 'width: 110px;']) }}
                                 </td>
-
 
                                 <td>
                                     <div class="form-group price-input input-group search-form">
@@ -558,12 +556,12 @@
                                 </td>
 
 
-                                <td>
+                                {{-- <td>
                                     <div class="form-group price-input input-group search-form">
                                         {{ Form::number('discount', '', array('class' => 'form-control discount', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
 
                                     </div>
-                                </td>
+                                </td> --}}
 
                                 {{ Form::hidden('price', '', array('class' => 'form-control price')) }}
                                 <td class="text-end amount">0.00</td>
@@ -583,7 +581,6 @@
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
-                                <td>&nbsp;</td>
                                 <td><strong>{{__('Sub Total')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
                                 <td class="text-end subTotal">0.00</td>
                                 <td></td>
@@ -595,14 +592,12 @@
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
-                                <td>&nbsp;</td>
-                                <td><strong>{{__('Discount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
+                                <td><strong>{{__('VAT')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
                                 <td class="text-end totalDiscount">0.00</td>
                                 <td></td>
                             </tr>
 
                             <tr>
-                                <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>
                                 <td>&nbsp;</td>

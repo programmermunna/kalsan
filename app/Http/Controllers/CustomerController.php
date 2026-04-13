@@ -111,12 +111,16 @@ class CustomerController extends Controller
                 $customer->contact         = $request->contact;
                 $customer->email           = $request->email;
                 $customer->type            = $request->type;
-                $customer->reg_date        =$request->reg_date;
-                $customer->dob             =$request->dob;
-                $customer->pob             =$request->pob;
-                $customer->gender          =$request->gender;
-                $customer->serial_no       =$request->serial_no;
-                                $customer->billing_address = $request->billing_address;
+                $customer->reg_date        = $request->reg_date;
+                $customer->dob             = $request->dob;
+                $customer->pob             = $request->pob;
+                $customer->body             = $request->body;
+                $customer->eye             = $request->eye;
+                $customer->gender          = $request->gender;
+                $customer->serial_no       = $request->serial_no;
+                $customer->cust_image      = $request->cust_image;
+                $customer->cust_document   = $request->cust_document;
+                $customer->billing_address = $request->billing_address;
                 $customer->billing_country = $request->billing_country;
                 $customer->billing_state   = $request->billing_state;
                 $customer->billing_city    = $request->billing_city;
@@ -127,7 +131,7 @@ class CustomerController extends Controller
                     $fileName = time() . '_' . $request->cust_image->getClientOriginalName();
                     $dir = 'uploads/cust_image';
                     $upload_result = Utility::upload_file($request, 'cust_image', $fileName, $dir, []);
-                    
+
                     if($upload_result['flag'] == 1) {
                         $customer->cust_image = $fileName;
                     } else {
@@ -140,7 +144,7 @@ class CustomerController extends Controller
                     $fileName = time() . '_' . $request->cust_document->getClientOriginalName();
                     $dir = 'uploads/cust_document';
                     $upload_result = Utility::upload_file($request, 'cust_document', $fileName, $dir, []);
-                    
+
                     if($upload_result['flag'] == 1) {
                         $customer->cust_document = $fileName;
                     } else {
@@ -294,7 +298,7 @@ class CustomerController extends Controller
     }
 
 
-    public function update(Request $request, Customer $customer)
+   public function update(Request $request, Customer $customer)
     {
 
         if(\Auth::user()->can('edit customer'))
@@ -303,8 +307,6 @@ class CustomerController extends Controller
             $rules = [
                 'name' => 'required',
                 'contact' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/',
-                'cust_image' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
-                'cust_document' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:2048',
             ];
 
 
@@ -316,68 +318,54 @@ class CustomerController extends Controller
                 return redirect()->route('customer.index')->with('error', $messages->first());
             }
 
-            $customer->name             = $request->name;
-            $customer->mother_name      = $request->mother_name;
-            $customer->contact          = $request->contact;
-            $customer->email            = $request->email;
-            $customer->type             = $request->customer_type;
-            $customer->reg_date         = $request->reg_date;
-            $customer->dob              = $request->dob;
-            $customer->pob              = $request->pob;
-            $customer->gender           = $request->gender;
-            $customer->serial_no        = $request->serial_no;
-            $customer->billing_address  = $request->billing_address;
-            $customer->billing_country  = $request->billing_country;
-            $customer->billing_state    = $request->billing_state;
-            $customer->billing_city     = $request->billing_city;
-            $customer->commission       = $request->commission;
-            $customer->created_by       = \Auth::user()->creatorId();
-            $customer->balance          = $request->balance ?? 0;
+                $customer->name            = $request->name;
+                $customer->mother_name     = $request->mother_name;
+                $customer->contact         = $request->contact;
+                $customer->email           = $request->email;
+                $customer->type            = $request->type;
+                $customer->reg_date        = $request->reg_date;
+                $customer->dob             = $request->dob;
+                $customer->pob             = $request->pob;
+                $customer->body            = $request->body;
+                $customer->eye             = $request->eye;
+                $customer->gender          = $request->gender;
+                $customer->serial_no       = $request->serial_no;
+                $customer->cust_image      = $request->cust_image;
+                $customer->cust_document   = $request->cust_document;
+                $customer->billing_address = $request->billing_address;
+                $customer->billing_country = $request->billing_country;
+                $customer->billing_state   = $request->billing_state;
+                $customer->billing_city    = $request->billing_city;
+                $customer->created_by      = \Auth::user()->creatorId();
 
-            // Handle customer image upload
-            if($request->hasFile('cust_image') && $request->file('cust_image')->isValid()) {
-                // Delete old image if exists
-                if(!empty($customer->cust_image)) {
-                    $oldImagePath = storage_path('uploads/cust_image/' . $customer->cust_image);
-                    if(file_exists($oldImagePath)) {
-                        unlink($oldImagePath);
+
+                if($request->hasFile('cust_image') && $request->file('cust_image')->isValid()) {
+                    $fileName = time() . '_' . $request->cust_image->getClientOriginalName();
+                    $dir = 'uploads/cust_image';
+                    $upload_result = Utility::upload_file($request, 'cust_image', $fileName, $dir, []);
+
+                    if($upload_result['flag'] == 1) {
+                        $customer->cust_image = $fileName;
+                    } else {
+                        return redirect()->back()->with('error', $upload_result['msg'])->withInput();
                     }
                 }
-                
-                $fileName = time() . '_' . $request->cust_image->getClientOriginalName();
-                $dir = 'uploads/cust_image';
-                $upload_result = Utility::upload_file($request, 'cust_image', $fileName, $dir, []);
-                
-                if($upload_result['flag'] == 1) {
-                    $customer->cust_image = $fileName;
-                } else {
-                    return redirect()->back()->with('error', $upload_result['msg'])->withInput();
-                }
-            }
 
-            // Handle customer document upload
-            if($request->hasFile('cust_document') && $request->file('cust_document')->isValid()) {
-                // Delete old document if exists
-                if(!empty($customer->cust_document)) {
-                    $oldDocPath = storage_path('uploads/cust_document/' . $customer->cust_document);
-                    if(file_exists($oldDocPath)) {
-                        unlink($oldDocPath);
+                // Handle customer document upload
+                if($request->hasFile('cust_document') && $request->file('cust_document')->isValid()) {
+                    $fileName = time() . '_' . $request->cust_document->getClientOriginalName();
+                    $dir = 'uploads/cust_document';
+                    $upload_result = Utility::upload_file($request, 'cust_document', $fileName, $dir, []);
+
+                    if($upload_result['flag'] == 1) {
+                        $customer->cust_document = $fileName;
+                    } else {
+                        return redirect()->back()->with('error', $upload_result['msg'])->withInput();
                     }
                 }
-                
-                $fileName = time() . '_' . $request->cust_document->getClientOriginalName();
-                $dir = 'uploads/cust_document';
-                $upload_result = Utility::upload_file($request, 'cust_document', $fileName, $dir, []);
-                
-                if($upload_result['flag'] == 1) {
-                    $customer->cust_document = $fileName;
-                } else {
-                    return redirect()->back()->with('error', $upload_result['msg'])->withInput();
-                }
-            }
 
             // Handle password and login enable for Travel Agency type
-            if($customer->type == 'Travel Agency' || $request->customer_type == 'Travel Agency')
+            if($customer->type == 'Travel Agency' || $request->type == 'Travel Agency')
             {
                 $enableLogin = $customer->is_enable_login ?? 0;
                 if(!empty($request->password_switch) && $request->password_switch == 'on')
@@ -414,6 +402,7 @@ class CustomerController extends Controller
             return redirect()->back()->with('error', __('Permission denied.'));
         }
     }
+
 
 
     public function destroy(Customer $customer)

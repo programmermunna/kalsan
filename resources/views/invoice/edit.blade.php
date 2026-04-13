@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 @section('page-title')
-    {{__('Invoice Edit')}}
+    {{__('License Edit')}}
 @endsection
 
 @section('breadcrumb')
     <li class="breadcrumb-item"><a href="{{route('dashboard')}}">{{__('Dashboard')}}</a></li>
-    <li class="breadcrumb-item"><a href="{{route('invoice.index')}}">{{__('Invoice')}}</a></li>
-    <li class="breadcrumb-item">{{__('Invoice Edit')}}</li>
+    <li class="breadcrumb-item"><a href="{{route('invoice.index')}}">{{__('License')}}</a></li>
+    <li class="breadcrumb-item">{{__('License Edit')}}</li>
 @endsection
 
 @push('script-page')
@@ -291,24 +291,23 @@
 
 
         function computeRowTotals(row) {
-                var fare = getNumericValue(row.find('.fare'));
-                var tax = getNumericValue(row.find('.tax'));
-                var custCommission = getNumericValue(row.find('.cust_commission'));
-                var discount = getNumericValue(row.find('.discount'));
+                var net = getNumericValue(row.find('.net'));
+            var fare = getNumericValue(row.find('.fare'));
+            var tax = getNumericValue(row.find('.tax'));
+            var refund = getNumericValue(row.find('.refund'));
+            var commission = getNumericValue(row.find('.commission'));
+            var discount = getNumericValue(row.find('.discount'));
 
-                // Total Amount = fare + tax + cust_commission - discount
-                var total = fare + tax + custCommission - discount;
-                var subTotal = fare + tax + custCommission;
+            // Total Amount = (net +fare + tax + cust_commission - discount)
+            var total = net + fare + tax + commission + refund - discount;
+            var subTotal = net + fare + tax + commission + refund;
 
-                // Ensure total is not negative
-                total = Math.max(total, 0);
-
-                return {
-                    productTotal: 0,
-                    subTotal: subTotal,
-                    discount: discount,
-                    total: total
-                };
+            return {
+                productTotal: 0,
+                subTotal: subTotal,
+                discount: discount,
+                total: total
+            };
             }
 
         // Calculate Fare Commission based on formula: (Fare amount * Commission %) / 100
@@ -338,7 +337,7 @@
             function calculateTax(row) {
                 var net = parseFloat(row.find('.net').val()) || 0;
                 var fare = parseFloat(row.find('.fare').val()) || 0;
-                var tax = net - fare;
+                //var tax = net - fare;
 
                 // Set the tax field value
                 var taxField = row.find('.tax');
@@ -385,10 +384,11 @@
                 var row = $(this).find('tr:first-child');
                 var rowTotals = computeRowTotals(row);
                 subTotal += rowTotals.subTotal;
-                totalDiscount += rowTotals.discount;
+                totalDiscount += rowTotals.subTotal * 5 / 100; // Assuming VAT is 5% of the subtotal. Adjust this formula as needed.
+
             });
 
-            var grandTotal = subTotal - totalDiscount;
+            var grandTotal = subTotal + totalDiscount;
 
             $('.subTotal').html(subTotal.toFixed(2));
             $('.totalDiscount').html(totalDiscount.toFixed(2));
@@ -473,299 +473,232 @@
 @endpush
 
 @section('content')
-                                                        @php
-    $issueDateValue = old('issue_date', !empty($invoice->issue_date) ? \Illuminate\Support\Carbon::parse($invoice->issue_date)->format('Y-m-d') : null);
-    $dueDateValue = old('due_date', !empty($invoice->due_date) ? \Illuminate\Support\Carbon::parse($invoice->due_date)->format('Y-m-d') : null);
-    $arrivalDateValue = old('arrival_date', !empty($invoice->arrival_date) ? \Illuminate\Support\Carbon::parse($invoice->arrival_date)->format('Y-m-d') : null);
-                                                        @endphp
-                                                        <div class="row">
-                                                            {{ Form::model($invoice, array('route' => array('invoice.update', $invoice->id), 'method' => 'PUT', 'class' => 'w-100', 'class' => 'needs-validation', 'novalidate')) }}
-                                                            <div class="col-12">
-                                                                <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
-                                                                <div class="card">
-                                                                    <div class="card-body">
-                                                                        <div class="row">
-                                                                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
-                                                                                <div class="form-group" id="customer-box">
-                                                                                    {{ Form::label('customer_id', __('Customer'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                    {{ Form::select('customer_id', $customers, null, array('class' => 'form-control select', 'id' => 'customer', 'data-url' => route('invoice.customer'), 'required' => 'required')) }}
-                                                                                    <div class="text-xs mt-1">
-                                                                                        {{ __('Create customer here.') }} <a href="{{ route('customer.index') }}"><b>{{ __('Create customer') }}</b></a>
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                <div id="customer_detail" class="d-none">
-                                                                                </div>
-                                                                                <div class="col-md-6">
-                                                                                    <div class="form-group">
-                                                                                        {{ Form::label('commission1', __('Customer Commission'), ['class' => 'form-label']) }}
-                                                                                        <div class="form-icon-user">
-                                                                                            <span><i class="ti ti-joint"></i></span>
-                                                                                            {{ Form::number('commission1', '', array('class' => 'form-control', 'id' => 'customer_commission', 'placeholder' => __('Commission %'))) }}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                <div class="col-md-6">
-                                                                                    <div class="form-group">
-                                                                                        {{ Form::label('origin', __('Orogin'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                        {{ Form::select('origin', $product_services, old('origin', $invoice->origin), array('class' => 'form-control select', 'id' => 'origin', 'required' => 'required')) }}
-                                                                                    </div>
-                                                                                    <div class="form-group">
-                                                                                        {{ Form::label('destination', __('Destination'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                        {{ Form::select('destination', $destination, old('destination', $invoice->destination), array('class' => 'form-control select', 'id' => 'destination', 'required' => 'required')) }}
-                                                                                    </div>
-                                                                                    <div class="form-group">
-                                                                                        {{ Form::textarea('description', null, ['class' => 'form-control pro_description', 'rows' => '2', 'placeholder' => __('Remarks')]) }}
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                                                @php
+$issueDateValue = old('issue_date', !empty($invoice->issue_date) ? \Illuminate\Support\Carbon::parse($invoice->issue_date)->format('Y-m-d') : null);
+$dueDateValue = old('due_date', !empty($invoice->due_date) ? \Illuminate\Support\Carbon::parse($invoice->due_date)->format('Y-m-d') : null);
+$arrivalDateValue = old('arrival_date', !empty($invoice->arrival_date) ? \Illuminate\Support\Carbon::parse($invoice->arrival_date)->format('Y-m-d') : null);
+                                                                @endphp
+                                                                <div class="row">
+                                                                    {{ Form::model($invoice, array('route' => array('invoice.update', $invoice->id), 'method' => 'PUT', 'class' => 'w-100', 'class' => 'needs-validation', 'novalidate')) }}
+                                                                    <div class="col-12">
+                                                                        <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
+                                                                        <div class="card">
+                                                                            <div class="card-body">
                                                                                 <div class="row">
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::label('invoice_number', __('Invoice Number'), ['class' => 'form-label']) }}
-                                                                                            <div class="form-icon-user">
-                                                                                                <input type="text" class="form-control" value="{{$invoice_number}}" readonly>
+                                                                                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                                                                        <div class="form-group" id="customer-box">
+                                                                                            {{ Form::label('customer_id', __('Customer'), ['class' => 'form-label']) }}<x-required></x-required>
+                                                                                            {{ Form::select('customer_id', $customers, null, array('class' => 'form-control select', 'id' => 'customer', 'data-url' => route('invoice.customer'), 'required' => 'required')) }}
+                                                                                            <div class="text-xs mt-1">
+                                                                                                {{ __('Create customer here.') }} <a href="{{ route('customer.index') }}"><b>{{ __('Create customer') }}</b></a>
                                                                                             </div>
                                                                                         </div>
-                                                                                    </div>
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::label('issue_date', __('Sales Date'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                            <div class="form-icon-user">
-                                                                                                {{Form::date('issue_date', $issueDateValue, array('class' => 'form-control', 'required' => 'required'))}}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
 
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::label('due_date', __('Departure Date'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                            <div class="form-icon-user">
-                                                                                                {{Form::date('due_date', $dueDateValue, array('class' => 'form-control', 'required' => 'required'))}}
-                                                                                            </div>
+                                                                                        <div id="customer_detail" class="d-none">
                                                                                         </div>
-                                                                                    </div>
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::label('arrival_date', __('Return Date'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                            <div class="form-icon-user">
-                                                                                                {{Form::date('arrival_date', $arrivalDateValue, array('class' => 'form-control', 'required' => 'required'))}}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
 
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::label('vender_id', __('Company'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                            {{ Form::select('vender_id', $topup, old('vender_id', $invoice->vender_id), array('class' => 'form-control select', 'id' => 'vender_id', 'data-url' => route('invoice.vender'), 'required' => 'required')) }}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::label('commission', __('Commission'), ['class' => 'form-label']) }}
-                                                                                            <div class="form-icon-user">
-                                                                                                <span><i class="ti ti-joint"></i></span>
-                                                                                                {{ Form::number('commission', '', array('class' => 'form-control', 'id' => 'commission', 'placeholder' => __('Commission %'))) }}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::label('category_id', __('Ticket Trip'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                            {{ Form::select('category_id', $category, null, array('class' => 'form-control select', 'required' => 'required')) }}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::label('pnr', __('PNR'), ['class' => 'form-label']) }}<x-required></x-required>
-                                                                                            <div class="form-icon-user">
-                                                                                                <span><i class="ti ti-joint"></i></span>
-                                                                                                {{ Form::text('pnr', null, array('class' => 'form-control', 'placeholder' => __('Enter PNR'), 'required' => 'required')) }}
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
 
-                                                                                    @if(!$customFields->isEmpty())
-                                                                                        @include('customFields.formBuilder')
-                                                                                    @endif
+                                                                                        <div class="col-md-6">
+
+                                                                                            <div class="form-group">
+                                                                                                {{ Form::textarea('description', null, ['class' => 'form-control pro_description', 'rows' => '2', 'placeholder' => __('Remarks')]) }}
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                                                                        <div class="row">
+                                                                                            <div class="col-md-6">
+                                                                                                <div class="form-group">
+                                                                                                    {{ Form::label('invoice_number', __('License Number'), ['class' => 'form-label']) }}
+                                                                                                    <div class="form-icon-user">
+                                                                                                        <input type="text" class="form-control" value="{{$invoice_number}}" readonly>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="col-md-6">
+                                                                                                <div class="form-group">
+                                                                                                    {{ Form::label('issue_date', __('Issue Date'), ['class' => 'form-label']) }}<x-required></x-required>
+                                                                                                    <div class="form-icon-user">
+                                                                                                        {{Form::date('issue_date', $issueDateValue, array('class' => 'form-control', 'required' => 'required'))}}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+
+                                                                                            <div class="col-md-6">
+                                                                                                <div class="form-group">
+                                                                                                    {{ Form::label('due_date', __('Due Date'), ['class' => 'form-label']) }}<x-required></x-required>
+                                                                                                    <div class="form-icon-user">
+                                                                                                        {{Form::date('due_date', $dueDateValue, array('class' => 'form-control', 'required' => 'required'))}}
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+
+
+
+                                                                                            @if(!$customFields->isEmpty())
+                                                                                                @include('customFields.formBuilder')
+                                                                                            @endif
+                                                                                        </div>
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-12">
-                                                                <h5 class=" d-inline-block mb-4">{{__('List of Passengers')}}</h5>
-                                                                <div class="card repeater" data-value='{{ json_encode($invoice->items) }}'>
-                                                                    <div class="item-section py-2">
-                                                                        <div class="row justify-content-between align-items-center">
-                                                                            <div class="col-md-12 d-flex align-items-center justify-content-between justify-content-md-end">
-                                                                                <div class="all-button-box me-2">
-                                                                                    <a href="#" data-repeater-create="" class="btn btn-primary" data-bs-toggle="modal" data-target="#add-bank">
-                                                                                        <i class="ti ti-plus"></i> {{__('Add Passenger')}}
-                                                                                    </a>
+                                                                    <div class="col-12">
+                                                                        <h5 class=" d-inline-block mb-4">{{__('List of Passengers')}}</h5>
+                                                                        <div class="card repeater" data-value='{{ json_encode($invoice->items) }}'>
+                                                                            <div class="item-section py-2">
+                                                                                <div class="row justify-content-between align-items-center">
+                                                                                    <div class="col-md-12 d-flex align-items-center justify-content-between justify-content-md-end">
+                                                                                        <div class="all-button-box me-2">
+                                                                                            <a href="#" data-repeater-create="" class="btn btn-primary" data-bs-toggle="modal" data-target="#add-bank">
+                                                                                                <i class="ti ti-plus"></i> {{__('Add Passenger')}}
+                                                                                            </a>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="card-body table-border-style mt-2">
+                                                                                <div class="table-responsive">
+                                                                                    <table class="table mb-0 table-custom-style" data-repeater-list="items" id="sortable-table">
+                                                                                        <thead>
+                                                                                        <tr>
+                                                                                            <th>{{__('Nooca Ruqsada')}}</th>
+                                                                                            <th>{{__('Grade')}}</th>
+                                                                                            <th>{{__('Diiwangalinta')}} </th>
+                                                                                            <th>{{__('B-Tabeelaha')}} </th>
+                                                                                            <th>{{__('Shahado')}} </th>
+                                                                                            <th>{{__('Buugga')}} </th>
+                                                                                            <th>{{__('Tijaabo Qadka')}} </th>
+                                                                                            <th class="text-end">{{__('Total Amount')}} <br><small
+                                                                                                    class="text-danger font-weight-bold">{{__('after discount')}}</small></th>
+                                                                                            <th></th>
+                                                                                        </tr>
+                                                                                        </thead>
+
+                                                                                        <tbody class="ui-sortable" data-repeater-item>
+                                                                                        <tr>
+                                                                                            <td class="form-group pt-0">
+                                                                                                {{ Form::select('type', ['Babuur' => 'Babuur', 'Babuurta Waaween' => 'Babuurta Waaween', 'Moto' => 'Moto'], old('title', $user->title ?? ''), ['class' => 'form-control', 'style' => 'width: 110px;']) }}
+                                                                                            </td>
+
+                                                                                            <td class="form-group pt-0">
+                                                                                                {{ Form::select('grade', ['A' => 'A', 'A1' => 'A1', 'B' => 'B', 'C' => 'C', 'C1' => 'C1', 'D' => 'D', 'E' => 'E', 'F' => 'F', 'G' => 'G'], old('title', $user->title ?? ''), ['class' => 'form-control', 'style' => 'width: 110px;']) }}
+                                                                                            </td>
+
+                                                                                            <td>
+                                                                                                <div class="form-group price-input input-group search-form">
+                                                                                                    {{ Form::number('net', '', array('class' => 'form-control net', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
+
+                                                                                                </div>
+                                                                                            </td>
+
+                                                                                            <td>
+                                                                                                <div class="form-group price-input input-group search-form">
+                                                                                                    {{ Form::number('fare', '', array('class' => 'form-control fare', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
+
+                                                                                                </div>
+                                                                                            </td>
+
+                                                                                            <td>
+                                                                                                <div class="form-group price-input input-group search-form">
+                                                                                                    {{ Form::number('tax', '', array('class' => 'form-control tax', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
+
+                                                                                                </div>
+                                                                                            </td>
+
+                                                                                            <td>
+                                                                                                <div class="form-group price-input input-group search-form">
+                                                                                                    {{ Form::number('refund', '', array('class' => 'form-control refund', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
+
+                                                                                                </div>
+                                                                                            </td>
+
+                                                                                            <td>
+                                                                                                <div class="form-group price-input input-group search-form">
+                                                                                                    {{ Form::number('commission', '', array('class' => 'form-control commission', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
+                                                                                                </div>
+                                                                                            </td>
+
+
+                                                                                            {{-- <td>
+                                                                                                <div class="form-group price-input input-group search-form">
+                                                                                                    {{ Form::number('discount', '', array('class' => 'form-control discount', 'required' => 'required',
+                                                                                                    'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
+
+                                                                                                </div>
+                                                                                            </td> --}}
+
+                                                                                            {{ Form::hidden('price', '', array('class' => 'form-control price')) }}
+                                                                                            <td class="text-end amount">0.00</td>
+                                                                                            <td>
+                                                                                                <div class="action-btn me-2">
+                                                                                                    <a href="#" class="ti ti-trash text-white btn btn-sm repeater-action-btn bg-danger ms-2  delete_item"
+                                                                                                        data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-repeater-delete></a>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                        {{-- <tr>
+                                                                                            <td colspan="4">
+                                                                                                <div class="form-group">
+                                                                                                    {{ Form::textarea('destination', null, ['class' => 'form-control destination', 'rows' => '2', 'placeholder' => __('Destinations')]) }}
+                                                                                                </div>
+                                                                                            </td>
+                                                                                            <td colspan="2">
+                                                                                                <div class="form-group">
+                                                                                                    {{ Form::number('commission', '', array('class' => 'form-control commission', 'required' => 'required', 'placeholder' => __('Fare Commission'), 'step' => '0.01', 'style' => 'width: 150px;', 'readonly' => 'readonly')) }}
+                                                                                                </div>
+                                                                                            </td>
+                                                                                            <td colspan="4"></td>
+                                                                                        </tr> --}}
+                                                                                        </tbody>
+                                                                                        <tfoot>
+                                                                                        <tr>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td><strong>{{__('Sub Total')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
+                                                                                            <td class="text-end subTotal">0.00</td>
+                                                                                            <td></td>
+                                                                                        </tr>
+                                                                                        <tr>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td><strong>{{__('Discount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
+                                                                                            <td class="text-end totalDiscount">0.00</td>
+                                                                                            <td></td>
+                                                                                        </tr>
+
+                                                                                        <tr>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td>&nbsp;</td>
+                                                                                            <td class="blue-text"><strong>{{__('Total Amount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
+                                                                                            <td class="text-end totalAmount blue-text">0.00</td>
+                                                                                            <td></td>
+                                                                                        </tr>
+                                                                                        </tfoot>
+                                                                                    </table>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div class="card-body table-border-style mt-2">
-                                                                        <div class="table-responsive">
-                                                                            <table class="table mb-0 table-custom-style" data-repeater-list="items" id="sortable-table">
-                                                                                <thead>
-                                                                                <tr>
-                                                                                    <th>{{__('Type')}}</th>
-                                                                                    <th>{{__('Ticket Number')}}</th>
-                                                                                    <th>{{__('Passanger Name')}}</th>
-                                                                                    <th>{{__('Net')}} </th>
-                                                                                    <th>{{__('Fare Amount')}} </th>
-                                                                                    <th>{{__('Tax')}} </th>
-                                                                                    <th>{{__('Refund')}} </th>
-                                                                                    <th>{{__('Commission')}} </th>
-                                                                                    <th>{{__('Cust Comm')}} </th>
-                                                                                    <th>{{__('Discount')}}</th>
-                                                                                    <th class="text-end">{{__('Total Amount')}} <br><small class="text-danger font-weight-bold">{{__('after discount')}}</small></th>
-                                                                                    <th></th>
-                                                                                </tr>
-                                                                                </thead>
-
-                                                                                <tbody class="ui-sortable" data-repeater-item>
-                                                                                <tr>
-                                                                                    {{ Form::hidden('id', null, array('class' => 'form-control id')) }}
-                                                                                    <td class="form-group pt-0">
-                                                                                        {{ Form::select('type', ['Adult' => 'Adult', 'Child' => 'Child', 'Infant' => 'Infant'], null, ['class' => 'form-control', 'style' => 'width: 90px;']) }}
-                                                                                    </td>
-
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::number('ticket_number', null, ['class' => 'form-control ticket_number', 'required' => 'required', 'placeholder' => __('Ticket #')]) }}
-                                                                                        </div>
-                                                                                    </td>
-
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::text('passanger_name', null, ['class' => 'form-control passanger_name', 'required' => 'required', 'placeholder' => __('Passanger Name'), 'style' => 'width: 200px;']) }}
-                                                                                        </div>
-                                                                                    </td>
-
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::number('net', '', array('class' => 'form-control net', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
-
-                                                                                        </div>
-                                                                                    </td>
-
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::number('fare', null, ['class' => 'form-control fare', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01']) }}
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::number('tax', '', array('class' => 'form-control tax', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 70px;', 'readonly' => 'readonly')) }}
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::number('refund', '', array('class' => 'form-control refund', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;')) }}
-
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::number('commission', '', array('class' => 'form-control commission', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 90px;', 'readonly' => 'readonly')) }}
-
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::number('cust_commission', null, ['class' => 'form-control cust_commission', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 70px;']) }}
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        <div class="form-group price-input input-group search-form">
-                                                                                            {{ Form::number('discount', null, ['class' => 'form-control discount', 'required' => 'required', 'placeholder' => __('$0.00'), 'step' => '0.01', 'style' => 'width: 50px;', 'readonly' => 'readonly']) }}
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    {{ Form::hidden('price', null, array('class' => 'form-control price')) }}
-                                                                                    <td class="text-end amount">0.00</td>
-                                                                                    <td>
-                                                                                        <div class="action-btn me-2">
-                                                                                            <a href="#" class="ti ti-trash text-white btn btn-sm repeater-action-btn bg-danger ms-2  delete_item" data-bs-toggle="tooltip" title="{{ __('Delete') }}" data-repeater-delete></a>
-                                                                                        </div>
-                                                                                    </td>
-                                                                                </tr>
-                                                                                {{-- <tr>
-                                                                                    <td colspan="4">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::textarea('destination', null, ['class' => 'form-control destination', 'rows' => '2', 'placeholder' => __('Destinations')]) }}
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td colspan="2">
-                                                                                        <div class="form-group">
-                                                                                            {{ Form::number('commission', '', array('class' => 'form-control commission', 'required' => 'required', 'placeholder' => __('Fare Commission'), 'step' => '0.01', 'style' => 'width: 150px;', 'readonly' => 'readonly')) }}
-                                                                                        </div>
-                                                                                    </td>
-                                                                                    <td colspan="4"></td>
-                                                                                </tr> --}}
-                                                                                </tbody>
-                                                                                <tfoot>
-                                                                                <tr>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td><strong>{{__('Sub Total')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                                                                    <td class="text-end subTotal">0.00</td>
-                                                                                    <td></td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td><strong>{{__('Discount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                                                                    <td class="text-end totalDiscount">0.00</td>
-                                                                                    <td></td>
-                                                                                </tr>
-
-                                                                                <tr>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td>&nbsp;</td>
-                                                                                    <td class="blue-text"><strong>{{__('Total Amount')}} ({{\Auth::user()->currencySymbol()}})</strong></td>
-                                                                                    <td class="text-end totalAmount blue-text">0.00</td>
-                                                                                    <td></td>
-                                                                                </tr>
-                                                                                </tfoot>
-                                                                            </table>
-                                                                        </div>
+                                                                    <div class="modal-footer">
+                                                                        @php $route = route("invoice.index"); @endphp
+                                                                        <input type="button" value="{{__('Cancel')}}" onclick="location.href = '{{ $route }}'" class="btn btn-secondary me-2">
+                                                                        <input type="submit" value="{{__('Update')}}" class="btn  btn-primary">
                                                                     </div>
+                                                                    {{ Form::close() }}
                                                                 </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                @php $route = route("invoice.index"); @endphp
-                                                                <input type="button" value="{{__('Cancel')}}" onclick="location.href = '{{ $route }}'" class="btn btn-secondary me-2">
-                                                                <input type="submit" value="{{__('Update')}}" class="btn  btn-primary">
-                                                            </div>
-                                                            {{ Form::close() }}
-                                                        </div>
 @endsection
 

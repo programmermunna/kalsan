@@ -449,7 +449,7 @@ Route::resource('taxes', TaxController::class)->middleware(['auth', 'XSS', 'reva
 
 Route::resource('revenue', RevenueController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
-Route::get('invoice/pdf/{id}', [InvoiceController::class, 'invoice'])->name('invoice.pdf')->middleware(['XSS', 'revalidate']);
+Route::get('invoice/pdf/{id}/{template?}', [InvoiceController::class, 'invoice'])->name('invoice.pdf')->middleware(['XSS', 'revalidate']);
 
 Route::get('bill/pdf/{id}', [BillController::class, 'bill'])->name('bill.pdf')->middleware(['XSS', 'revalidate']);
 
