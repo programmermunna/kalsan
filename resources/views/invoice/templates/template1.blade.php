@@ -529,8 +529,8 @@ if (!empty($invoice->destination)) {
         @endif
       </div>
 
-      <div class="grade-box">Grade @if($license){{ $license->grade }}@else D @endif</div>
-    <div class="grade-box"> @if($license){{ $license->type }}@else Baabuur @endif</div>
+      <div class="grade-box">Grade @if(isset($invoice->items) && count($invoice->items) > 0){{ $invoice->items[0]->grade ?? 'D' }}@else D @endif</div>
+    <div class="grade-box">@if(isset($invoice->items) && count($invoice->items) > 0){{ $invoice->items[0]->type ?? 'Baabuur' }}@else Baabuur @endif</div>
 
 
     </div>
